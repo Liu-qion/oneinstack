@@ -187,7 +187,7 @@ MYSQL_DOWNLOAD_URL="https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-${MYSQL_
 # Boost版本
 BOOST_VERSION="1.59.0"
 BOOST_DOWNLOAD_URL="https://zenlayer.dl.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.tar.gz?viasf=1"
-BOOST_INSTALL_DIR="/usr/local/boost_${BOOST_VERSION}"
+BOOST_INSTALL_DIR="/usr/local/boost_1_59_0.tar.gz"
 
 # OpenSSL版本
 OPENSSL_VERSION="1.1.1u"
@@ -316,10 +316,26 @@ Install_MySQL() {
 }
 
 # 初始化 MySQL
+# 初始化 MySQL
 Initialize_MySQL() {
   echo "初始化 MySQL 数据目录..."
-  ${MYSQL_INSTALL_DIR}/bin/mysqld --initialize-insecure --user=mysql --basedir=${MYSQL_INSTALL_DIR} --datadir=${MYSQL_DATA_DIR}
-  echo "MySQL 初始化完成"
+  ${MYSQL_INSTALL_DIR}/bin/mysqld --initialize --user=mysql --basedir=${MYSQL_INSTALL_DIR} --datadir=${MYSQL_DATA_DIR}
+  
+  echo "提取初始 root 密码..."
+  TEMP_PASSWORD=$(grep 'temporary password' ${MYSQL_DATA_DIR}/error.log | awk '{print $NF}')
+  
+  echo "初始 root 密码: ${TEMP_PASSWORD}"
+  
+  echo "启动 MySQL 服务..."
+  ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql &
+
+  echo "等待 MySQL 服务启动..."
+  sleep 10
+
+  echo "修改 root 密码..."
+  ${MYSQL_INSTALL_DIR}/bin/mysqladmin -uroot -p"${TEMP_PASSWORD}" password "your_new_password"
+  
+  echo "MySQL 初始化完成，root 密码已设置为: your_new_password"
 }
 
 # 设置环境变量
@@ -356,7 +372,6 @@ Main() {
 
 # 执行主函数
 Main
-
 
 
 `

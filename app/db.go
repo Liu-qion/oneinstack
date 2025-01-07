@@ -64,9 +64,9 @@ func initSoftware() error {
 			Icon:      "",
 			Type:      "",
 			Status:    0,
-			Resource:  "init",
+			Resource:  "local",
 			Installed: false,
-			Version:   "5.5,5.6,5.7,8.0",
+			Version:   "5.5,5.7,8.0",
 			Tags:      "",
 			Params: `
 	[{
@@ -91,9 +91,33 @@ func initSoftware() error {
 		"type": "username"
 	}]`,
 		},
+		{
+			Name:      "Redis",
+			Key:       "redis",
+			Icon:      "",
+			Type:      "",
+			Status:    0,
+			Resource:  "local",
+			Installed: false,
+			Version:   "6.2.0,7.0.5",
+			Tags:      "",
+			Params:    "",
+		},
+		{
+			Name:      "Nginx",
+			Key:       "webserver",
+			Icon:      "",
+			Type:      "",
+			Status:    0,
+			Resource:  "local",
+			Installed: false,
+			Version:   "1.24.0",
+			Tags:      "",
+			Params:    "",
+		},
 	}
 	var soft models.Software
-	result := db.Where("resource = ?", "init").First(&soft)
+	result := db.Where("resource = ?", "local").First(&soft)
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return result.Error
 	}

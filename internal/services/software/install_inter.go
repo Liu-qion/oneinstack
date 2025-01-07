@@ -253,7 +253,7 @@ Install_Zlib() {
 Install_Boost() {
   if [ ! -d "${BOOST_INSTALL_DIR}" ]; then
     echo "安装 Boost ${BOOST_VERSION}..."
-    wget -c "${BOOST_DOWNLOAD_URL}" || { echo "下载 Boost 失败"; exit 1; }
+    wget -c "${BOOST_DOWNLOAD_URL}" -O "boost_1_59_0.tar.gz" || { echo "下载 Boost 失败"; exit 1; }
     tar xf "boost_1_59_0.tar.gz"
     cd "boost_1_59_0" || exit
     ./bootstrap.sh --prefix="${BOOST_INSTALL_DIR}"

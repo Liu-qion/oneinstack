@@ -189,7 +189,7 @@ MYSQL_DOWNLOAD_URL="https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-${MYSQL_
 # Boost版本
 BOOST_VERSION="1.59.0"
 BOOST_DOWNLOAD_URL="https://zenlayer.dl.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.tar.gz?viasf=1"
-BOOST_INSTALL_DIR="/usr/local/boost_1_59_0.tar.gz"
+BOOST_INSTALL_DIR="/usr/local/boost"
 
 # OpenSSL版本
 OPENSSL_VERSION="1.1.1u"
@@ -205,11 +205,17 @@ ZLIB_INSTALL_DIR="/usr/local/zlib"
 MYSQL_INSTALL_DIR="/usr/local/mysql"
 MYSQL_DATA_DIR="/data/mysql"
 
+# 临时目录
+TEMP_DIR="/tmp/mysql_install"
+
 # 检查是否为 root 用户
 if [ "$(id -u)" != "0" ]; then
   echo "请以 root 用户运行该脚本"
   exit 1
 fi
+
+# 获取 root 密码
+MYSQL_ROOT_PASSWORD=${1:-"default_password"}
 
 # 检测系统类型
 Detect_OS() {
@@ -236,76 +242,74 @@ Install_Dependencies() {
   fi
 }
 
+# 下载和解压工具函数
+Download_And_Extract() {
+  local url=$1
+  local output_file=$2
+  local extract_dir=$3
+
+  mkdir -p "${TEMP_DIR}"
+  wget -c "${url}" -O "${TEMP_DIR}/${output_file}" || { echo "下载 ${output_file} 失败"; exit 1; }
+  mkdir -p "${extract_dir}"
+  tar xf "${TEMP_DIR}/${output_file}" -C "${extract_dir}"
+}
+
 Install_Zlib() {
   if [ ! -d "${ZLIB_INSTALL_DIR}" ]; then
     echo "安装 Zlib ${ZLIB_VERSION}..."
-    wget -c "${ZLIB_DOWNLOAD_URL}" || { echo "下载 Zlib 失败"; exit 1; }
-    tar xf "zlib-${ZLIB_VERSION}.tar.gz"
-    cd "zlib-${ZLIB_VERSION}" || exit
+    Download_And_Extract "${ZLIB_DOWNLOAD_URL}" "zlib-${ZLIB_VERSION}.tar.gz" "${TEMP_DIR}/zlib"
+    cd "${TEMP_DIR}/zlib/zlib-${ZLIB_VERSION}" || exit
     ./configure --prefix=${ZLIB_INSTALL_DIR}
     make -j"$(nproc)"
     make install
-    cd ..
   else
     echo "Zlib ${ZLIB_VERSION} 已安装，路径：${ZLIB_INSTALL_DIR}"
   fi
 }
 
-# 安装 Boost
 Install_Boost() {
   if [ ! -d "${BOOST_INSTALL_DIR}" ]; then
     echo "安装 Boost ${BOOST_VERSION}..."
-    wget -c "${BOOST_DOWNLOAD_URL}" -O "boost_1_59_0.tar.gz" || { echo "下载 Boost 失败"; exit 1; }
-    tar xf "boost_1_59_0.tar.gz"
-    cd "boost_1_59_0" || exit
+    Download_And_Extract "${BOOST_DOWNLOAD_URL}" "boost_1_59_0.tar.gz" "${TEMP_DIR}/boost"
+    cd "${TEMP_DIR}/boost/boost_1_59_0" || exit
     ./bootstrap.sh --prefix="${BOOST_INSTALL_DIR}"
     ./b2 install
-    cd ..
   else
     echo "Boost ${BOOST_VERSION} 已安装，路径：${BOOST_INSTALL_DIR}"
   fi
 }
 
-# 安装 OpenSSL
 Install_OpenSSL() {
   if [ ! -d "${OPENSSL_INSTALL_DIR}" ]; then
     echo "安装 OpenSSL ${OPENSSL_VERSION}..."
-    wget -c "${OPENSSL_DOWNLOAD_URL}" || { echo "下载 OpenSSL 失败"; exit 1; }
-    tar xf "openssl-${OPENSSL_VERSION}.tar.gz"
-    cd "openssl-${OPENSSL_VERSION}" || exit
+    Download_And_Extract "${OPENSSL_DOWNLOAD_URL}" "openssl-${OPENSSL_VERSION}.tar.gz" "${TEMP_DIR}/openssl"
+    cd "${TEMP_DIR}/openssl/openssl-${OPENSSL_VERSION}" || exit
     ./config --prefix=${OPENSSL_INSTALL_DIR} no-ssl2 no-ssl3
     make -j"$(nproc)"
     make install
-    cd ..
   else
     echo "OpenSSL ${OPENSSL_VERSION} 已安装，路径：${OPENSSL_INSTALL_DIR}"
   fi
 }
 
-# 下载 MySQL 源码
 Download_MySQL() {
-  if [ ! -f "mysql-${MYSQL_VERSION}.tar.gz" ]; then
+  if [ ! -f "${TEMP_DIR}/mysql-${MYSQL_VERSION}.tar.gz" ]; then
     echo "下载 MySQL ${MYSQL_VERSION}..."
-    wget -c "${MYSQL_DOWNLOAD_URL}" || { echo "下载 MySQL 失败"; exit 1; }
+    wget -c "${MYSQL_DOWNLOAD_URL}" -O "${TEMP_DIR}/mysql-${MYSQL_VERSION}.tar.gz" || { echo "下载 MySQL 失败"; exit 1; }
   fi
-  tar xf "mysql-${MYSQL_VERSION}.tar.gz"
+  mkdir -p "${TEMP_DIR}/mysql"
+  tar xf "${TEMP_DIR}/mysql-${MYSQL_VERSION}.tar.gz" -C "${TEMP_DIR}/mysql"
 }
 
-# 编译并安装 MySQL
 Install_MySQL() {
-  cd "mysql-${MYSQL_VERSION}" || exit
+  cd "${TEMP_DIR}/mysql/mysql-${MYSQL_VERSION}" || exit
   cmake . \
   -DCMAKE_INSTALL_PREFIX=${MYSQL_INSTALL_DIR} \
   -DMYSQL_DATADIR=${MYSQL_DATA_DIR} \
   -DWITH_INNOBASE_STORAGE_ENGINE=1 \
-  -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
-  -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
-  -DWITH_FEDERATED_STORAGE_ENGINE=1 \
-  -DWITH_PARTITION_STORAGE_ENGINE=1 \
-  -DENABLED_LOCAL_INFILE=1 \
+  -DWITH_BOOST=${BOOST_INSTALL_DIR} \
   -DWITH_SSL=${OPENSSL_INSTALL_DIR} \
   -DWITH_ZLIB=${ZLIB_INSTALL_DIR} \
-  -DWITH_BOOST=${BOOST_INSTALL_DIR} \
   -DCMAKE_C_FLAGS="-fPIC" \
   -DDEFAULT_CHARSET=utf8 \
   -DDEFAULT_COLLATION=utf8_general_ci \
@@ -314,50 +318,20 @@ Install_MySQL() {
 
   make -j"$(nproc)"
   make install
-  cd ..
 }
 
-# 初始化 MySQL
-# 初始化 MySQL
 Initialize_MySQL() {
   echo "初始化 MySQL 数据目录..."
   ${MYSQL_INSTALL_DIR}/bin/mysqld --initialize --user=mysql --basedir=${MYSQL_INSTALL_DIR} --datadir=${MYSQL_DATA_DIR}
   
-  echo "提取初始 root 密码..."
-  TEMP_PASSWORD=$(grep 'temporary password' ${MYSQL_DATA_DIR}/error.log | awk '{print $NF}')
-  
-  echo "初始 root 密码: ${TEMP_PASSWORD}"
-  
   echo "启动 MySQL 服务..."
   ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql &
 
-  echo "等待 MySQL 服务启动..."
   sleep 10
-
   echo "修改 root 密码..."
-  ${MYSQL_INSTALL_DIR}/bin/mysqladmin -uroot -p"${TEMP_PASSWORD}" password "your_new_password"
-  
-  echo "MySQL 初始化完成，root 密码已设置为: your_new_password"
+  ${MYSQL_INSTALL_DIR}/bin/mysqladmin -uroot password "${MYSQL_ROOT_PASSWORD}"
 }
 
-# 设置环境变量
-Configure_Environment() {
-  echo "配置环境变量..."
-  if ! grep -q "${MYSQL_INSTALL_DIR}/bin" /etc/profile; then
-    echo "export PATH=\$PATH:${MYSQL_INSTALL_DIR}/bin" >> /etc/profile
-    source /etc/profile
-  fi
-  echo "环境变量配置完成"
-}
-
-# 启动 MySQL
-Start_MySQL() {
-  echo "启动 MySQL 服务..."
-  ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql &
-  echo "MySQL 启动完成"
-}
-
-# 主函数
 Main() {
   Detect_OS
   Install_Dependencies
@@ -367,14 +341,10 @@ Main() {
   Download_MySQL
   Install_MySQL
   Initialize_MySQL
-  Configure_Environment
-  Start_MySQL
-  echo "MySQL ${MYSQL_VERSION} 安装完成"
+  echo "MySQL ${MYSQL_VERSION} 安装完成，root 密码为：${MYSQL_ROOT_PASSWORD}"
 }
 
-# 执行主函数
 Main
-
 
 `
 

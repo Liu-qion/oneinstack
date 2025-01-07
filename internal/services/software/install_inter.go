@@ -2,6 +2,8 @@ package software
 
 import (
 	"fmt"
+	"oneinstack/app"
+	"oneinstack/internal/models"
 	"oneinstack/utils"
 	"oneinstack/web/input"
 	"os"
@@ -600,7 +602,7 @@ func (ps InstallOP) Install() (string, error) {
 	default:
 		return "", fmt.Errorf("未知的软件类型")
 	}
-	fn, err := createShScript(bash, ps.BashParams.Key+ps.BashParams.Version+".sh")
+	fn, err := ps.createShScript(bash, ps.BashParams.Key+ps.BashParams.Version+".sh")
 	if err != nil {
 		return "", err
 
@@ -608,24 +610,24 @@ func (ps InstallOP) Install() (string, error) {
 
 	switch ps.BashParams.Key {
 	case "webserver":
-		return executeShScript(fn)
+		return ps.executeShScript(fn)
 	case "db":
 		if ps.BashParams.Version == "5.5" {
-			return executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
 		}
 		if ps.BashParams.Version == "5.7" {
-			return executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
 		}
 		if ps.BashParams.Version == "8.0" {
-			return executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
 		}
 		return "", fmt.Errorf("未知的db类型")
 	case "redis":
 		if ps.BashParams.Version == "6.2.0" {
-			return executeShScript(fn, "6")
+			return ps.executeShScript(fn, "6")
 		}
 		if ps.BashParams.Version == "7.0.5" {
-			return executeShScript(fn, "7")
+			return ps.executeShScript(fn, "7")
 		}
 		return "", fmt.Errorf("未知的redis类型")
 	case "php":
@@ -638,7 +640,7 @@ func (ps InstallOP) Install() (string, error) {
 }
 
 // createShScript 将字符串内容保存为.sh脚本文件，如果文件已存在则覆盖
-func createShScript(scriptContent, filename string) (string, error) {
+func (ps InstallOP) createShScript(scriptContent, filename string) (string, error) {
 	// 打开文件，如果文件不存在则创建，权限设置为可读可写可执行
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
@@ -658,7 +660,7 @@ func createShScript(scriptContent, filename string) (string, error) {
 }
 
 // executeShScript 执行指定的脚本文件，并支持传递命令行参数
-func executeShScript(scriptName string, args ...string) (string, error) {
+func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, error) {
 	// 拼接完整的命令：bash scriptName args...
 	cmdArgs := append([]string{scriptName}, args...)
 	cmd := exec.Command("bash", cmdArgs...)
@@ -676,12 +678,16 @@ func executeShScript(scriptName string, args ...string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	go func() {
+	app.DB().Where("key = ?", ps.BashParams.Key).Update("status", models.Soft_Status_Ing)
+	go func(bp *input.InstallParams) {
 		err = cmd.Wait()
 		if err != nil {
 			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+			app.DB().Where("key = ?", bp.Key).Update("status", models.Soft_Status_Err)
+			return
 		}
-	}()
+		app.DB().Where("key = ?", bp.Key).Update("status", models.Soft_Status_Suc)
+	}(ps.BashParams)
 	return logFileName, nil
 }
 

@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	Soft_Status_Default = "待安装"
-	Soft_Status_Ing     = "安装中"
-	Soft_Status_Suc     = "安装成功"
-	Soft_Status_Err     = "安装失败"
+	Soft_Status_Default = 0
+	Soft_Status_Ing     = 1
+	Soft_Status_Suc     = 2
+	Soft_Status_Err     = 3
 )
 
 type Software struct {

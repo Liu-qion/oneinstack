@@ -1,0 +1,17 @@
+install.log
+
+/oneinstack/
+
+myadmin.db
+
+oneinstack.tar.gz
+
+vcs.xml
+
+cmd/config.yaml
+
+cmd/oneinstack
+
+.vscode
+
+*.log

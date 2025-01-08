@@ -44,8 +44,7 @@ func (ps InstallOP) Install() (string, error) {
 	case "redis":
 		bash = redis
 	case "php":
-		params := buildIParams(ps.BashParams)
-		return runInstall(params)
+		bash = php
 	case "java":
 		bash = `echo 123`
 	default:
@@ -62,13 +61,13 @@ func (ps InstallOP) Install() (string, error) {
 		return ps.executeShScript(fn)
 	case "db":
 		if ps.BashParams.Version == "5.5" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		if ps.BashParams.Version == "5.7" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		if ps.BashParams.Version == "8.0" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		return "", fmt.Errorf("未知的db类型")
 	case "redis":
@@ -80,6 +79,15 @@ func (ps InstallOP) Install() (string, error) {
 		}
 		return "", fmt.Errorf("未知的redis类型")
 	case "php":
+		if ps.BashParams.Version == "5.6" {
+			return ps.executeShScript(fn, "5")
+		}
+		if ps.BashParams.Version == "7.4" {
+			return ps.executeShScript(fn, "7")
+		}
+		if ps.BashParams.Version == "8.1" {
+			return ps.executeShScript(fn, "8")
+		}
 		return "", nil
 	case "java":
 		return ps.executeShScript(fn)
@@ -155,7 +163,6 @@ func runInstall(params *input.InstallationParams) (string, error) {
 
 	// 构建命令行参数列表
 	cmdArgs := params.BuildCmdArgs()
-	argsWithSudo := append([]string{}, cmdArgs...)
 
 	// 添加执行权限
 	dirPath := "./oneinstack/oneinstack/include"
@@ -170,7 +177,7 @@ func runInstall(params *input.InstallationParams) (string, error) {
 		return "", fmt.Errorf("无法设置脚本执行权限: %v", err)
 	}
 
-	cmdInstall := exec.Command("./oneinstack/oneinstack/install.sh", argsWithSudo...)
+	cmdInstall := exec.Command("./oneinstack/oneinstack/install.sh", cmdArgs...)
 
 	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
 	logFile, err := os.Create(logFileName)
@@ -584,7 +591,139 @@ Main
 
 `
 
-var mysql80 = ``
+var mysql80 = `
+#!/bin/bash
+
+# 默认参数
+MYSQL_VERSION="8.0"
+MYSQL_ROOT_PASSWORD=""
+MYSQL_PORT=3306
+
+# 帮助信息
+usage() {
+  echo "Usage: $0 -p <root_password> -P <mysql_port>"
+  echo "  -p  设置 MySQL root 密码 (必需)"
+  echo "  -P  设置 MySQL 端口号 (默认: 3306)"
+  exit 1
+}
+
+# 解析参数
+while getopts "p:P:h" opt; do
+  case $opt in
+    p) MYSQL_ROOT_PASSWORD="$OPTARG" ;;
+    P) MYSQL_PORT="$OPTARG" ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+
+# 检查是否提供了 root 密码
+if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+  echo "错误: 必须提供 root 密码 (-p)"
+  usage
+fi
+
+# 检查是否为 root 用户
+if [ "$(id -u)" != "0" ]; then
+  echo "请以 root 用户运行该脚本"
+  exit 1
+fi
+
+# 检测系统类型
+Detect_OS() {
+  if [ -f /etc/redhat-release ]; then
+    OS="CentOS"
+    PM="yum"
+  elif [ -f /etc/debian_version ]; then
+    OS="Debian"
+    PM="apt"
+  else
+    echo "不支持的操作系统"
+    exit 1
+  fi
+}
+
+# 安装依赖
+Install_Dependencies() {
+  echo "安装必要依赖包..."
+  if [ "$PM" == "yum" ]; then
+    yum -y install wget lsb-release gnupg
+  elif [ "$PM" == "apt" ]; then
+    apt update
+    apt -y install wget lsb-release gnupg
+  fi
+}
+
+# 导入 MySQL GPG 公钥
+Import_MySQL_GPG_Key() {
+  echo "导入 MySQL GPG 公钥..."
+  wget -q https://dev.mysql.com/get/mysql-apt-config_0.8.17-1_all.deb
+  dpkg -i mysql-apt-config_0.8.17-1_all.deb
+  wget -q http://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+  apt-key adv --fetch-keys http://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+  apt-get update
+}
+
+# 安装 MySQL 8.0
+Install_MySQL() {
+  echo "安装 MySQL 8.0..."
+  if [ "$PM" == "yum" ]; then
+    yum -y install mysql-server
+  elif [ "$PM" == "apt" ]; then
+    apt -y install mysql-server
+  fi
+}
+
+# 启动 MySQL 服务
+Start_MySQL() {
+  echo "启动 MySQL 服务..."
+  systemctl start mysql
+  systemctl enable mysql
+}
+
+# 修改 root 密码（无交互）
+Change_Root_Password() {
+  echo "修改 root 密码..."
+  mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+}
+
+# 配置防火墙
+Configure_Firewall() {
+  echo "配置防火墙..."
+  if [ "$PM" == "yum" ]; then
+    firewall-cmd --zone=public --add-port=${MYSQL_PORT}/tcp --permanent &>/dev/null
+    firewall-cmd --reload &>/dev/null
+  elif [ "$PM" == "apt" ]; then
+    ufw allow ${MYSQL_PORT}/tcp &>/dev/null
+  fi
+}
+
+# 配置 MySQL 安全设置（禁用匿名用户，删除测试数据库等）
+Secure_MySQL() {
+  echo "配置 MySQL 安全设置..."
+  mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';"
+  mysql -e "DROP USER IF EXISTS ''@'localhost';"
+  mysql -e "DROP USER IF EXISTS ''@'$(hostname)';"
+  mysql -e "FLUSH PRIVILEGES;"
+}
+
+# 主函数
+Main() {
+  Detect_OS
+  Install_Dependencies
+  Import_MySQL_GPG_Key
+  Install_MySQL
+  Start_MySQL
+  Change_Root_Password
+  Configure_Firewall
+  Secure_MySQL
+  echo "MySQL 8.0 安装完成，root 密码已设置为: ${MYSQL_ROOT_PASSWORD}, 端口: ${MYSQL_PORT}"
+}
+
+# 执行主函数
+Main
+
+`
 
 var redis = `
 #!/bin/bash
@@ -901,4 +1040,74 @@ echo "站点配置目录为 /etc/nginx/sites-available 和 /etc/nginx/sites-enab
 
 `
 
-var php = ``
+var php = `
+#!/bin/bash
+
+# 检查操作系统类型并选择安装方法
+OS=$(awk -F= '/^NAME/{print $2}' /etc/os-release)
+
+echo "操作系统: $OS"
+
+# 设置稳定版本的 PHP 版本
+case "$1" in
+    5)
+        PHP_VERSION="5.6"
+        ;;
+    7)
+        PHP_VERSION="7.4"
+        ;;
+    8)
+        PHP_VERSION="8.1"
+        ;;
+    *)
+        echo "请提供有效的 PHP 版本 (5, 7, 或 8)。例如: ./php.sh 5"
+        exit 1
+        ;;
+esac
+
+# 更新包管理器的仓库
+echo "更新包列表..."
+if [[ "$OS" =~ "Ubuntu" || "$OS" =~ "Debian" ]]; then
+    sudo apt update -y
+    sudo apt install -y software-properties-common
+
+    # 添加 PPA 仓库，支持多个 PHP 版本
+    sudo add-apt-repository -y ppa:ondrej/php
+    sudo apt update -y
+
+    # 安装指定版本的 PHP 及常用扩展
+    echo "安装 PHP $PHP_VERSION 和相关扩展..."
+    sudo apt install -y php$PHP_VERSION php$PHP_VERSION-cli php$PHP_VERSION-fpm php$PHP_VERSION-mysql php$PHP_VERSION-xml php$PHP_VERSION-mbstring php$PHP_VERSION-curl php$PHP_VERSION-gd php$PHP_VERSION-zip
+elif [[ "$OS" =~ "CentOS" || "$OS" =~ "RHEL" ]]; then
+    sudo yum update -y
+    sudo yum install -y epel-release
+    sudo yum install -y https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    sudo yum install -y yum-utils
+
+    # 启用 Remi 仓库并安装指定版本 PHP
+    echo "安装 PHP $PHP_VERSION 和相关扩展..."
+    sudo yum module enable -y php:$PHP_VERSION
+    sudo yum install -y php$PHP_VERSION php$PHP_VERSION-cli php$PHP_VERSION-fpm php$PHP_VERSION-mysqlnd php$PHP_VERSION-xml php$PHP_VERSION-mbstring php$PHP_VERSION-curl php$PHP_VERSION-gd php$PHP_VERSION-zip
+else
+    echo "不支持的操作系统。只支持 Ubuntu/Debian/CentOS/RHEL。"
+    exit 1
+fi
+
+# 启动 PHP-FPM 服务并设置为开机自启
+echo "启动 PHP $PHP_VERSION FPM 服务..."
+if [[ "$OS" =~ "Ubuntu" || "$OS" =~ "Debian" ]]; then
+    sudo systemctl start php$PHP_VERSION-fpm
+    sudo systemctl enable php$PHP_VERSION-fpm
+elif [[ "$OS" =~ "CentOS" || "$OS" =~ "RHEL" ]]; then
+    sudo systemctl start php-fpm
+    sudo systemctl enable php-fpm
+fi
+
+# 检查 PHP 安装
+echo "检查 PHP $PHP_VERSION 版本..."
+php -v
+
+# 提示安装完成
+echo "PHP $PHP_VERSION 安装完成，FPM 服务已启动并设置为开机自启。"
+
+`

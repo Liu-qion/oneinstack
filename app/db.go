@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
@@ -115,10 +116,22 @@ func initSoftware() error {
 			Tags:      "",
 			Params:    "",
 		},
+		{
+			Name:      "PHP",
+			Key:       "php",
+			Icon:      "",
+			Type:      "",
+			Status:    0,
+			Resource:  "local",
+			Installed: false,
+			Version:   "5.6,7.4,8.1",
+			Tags:      "",
+			Params:    "",
+		},
 	}
 	var soft models.Software
 	result := db.Where("resource = ?", "local").First(&soft)
-	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return result.Error
 	}
 	if soft.Id > 0 {

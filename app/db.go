@@ -173,6 +173,6 @@ func setupAdminUser() error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	fmt.Printf("Admin user created successfully.\nUsername: %s\nPassword: %s\n", "admin", password)
+	fmt.Printf("Admin user created successfully.\nUsername: %s\nPassword: %s\n", username, password)
 	return nil
 }

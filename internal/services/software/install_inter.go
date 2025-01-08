@@ -804,6 +804,7 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 		fmt.Println(tx.Error.Error())
 	}
 	go func(bp *input.InstallParams) {
+		fmt.Println("cmd running")
 		err = cmd.Wait()
 		defer func() {
 			if err != nil {

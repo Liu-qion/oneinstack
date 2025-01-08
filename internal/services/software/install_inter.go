@@ -808,6 +808,7 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 		defer func() {
 			if err != nil {
 				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
 				return
 			}
 			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})

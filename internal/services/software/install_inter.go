@@ -734,13 +734,13 @@ func (ps InstallOP) Install() (string, error) {
 		return ps.executeShScript(fn)
 	case "db":
 		if ps.BashParams.Version == "5.5" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
 		}
 		if ps.BashParams.Version == "5.7" {
 			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
 		}
 		if ps.BashParams.Version == "8.0" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
 		}
 		return "", fmt.Errorf("未知的db类型")
 	case "redis":
@@ -805,11 +805,13 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 	}
 	go func(bp *input.InstallParams) {
 		err = cmd.Wait()
-		if err != nil {
-			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-			return
-		}
-		app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+		defer func() {
+			if err != nil {
+				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+				return
+			}
+			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+		}()
 	}(ps.BashParams)
 	return logFileName, nil
 }

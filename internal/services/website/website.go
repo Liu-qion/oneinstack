@@ -37,7 +37,7 @@ func Add(param *models.Website) error {
 
 func Update(param *models.Website) error {
 	w := &models.Website{}
-	app.DB().Where("domain  = ?", param.Domain).First(w)
+	app.DB().Where("id = ?", param.ID).First(w)
 	if w.ID > 0 && w.ID != param.ID {
 		return fmt.Errorf("已存在%v", w.Domain)
 	}
@@ -45,6 +45,10 @@ func Update(param *models.Website) error {
 	tx := app.DB().Where("id = ?", param.ID).Updates(param)
 	if tx.Error != nil {
 		return tx.Error
+	}
+	err := DeleteNginxConfig(w.Name)
+	if err != nil {
+		return err
 	}
 	config, err := GenerateNginxConfig(param)
 	if err != nil {

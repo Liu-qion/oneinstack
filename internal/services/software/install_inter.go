@@ -2,7 +2,7 @@ package software
 
 import (
 	"fmt"
-	"oneinstack/app"
+	app "oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/utils"
 	"oneinstack/web/input"
@@ -812,7 +812,10 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
 				return
 			}
-			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+			tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+			if tx.Error != nil {
+				fmt.Println(tx.Error.Error())
+			}
 		}()
 	}(ps.BashParams)
 	return logFileName, nil

@@ -155,7 +155,7 @@ func runInstall(params *input.InstallationParams) (string, error) {
 
 	// 构建命令行参数列表
 	cmdArgs := params.BuildCmdArgs()
-	argsWithSudo := append([]string{"./oneinstack/oneinstack/install.sh"}, cmdArgs...)
+	argsWithSudo := append([]string{}, cmdArgs...)
 
 	// 添加执行权限
 	dirPath := "./oneinstack/oneinstack/include"
@@ -170,7 +170,7 @@ func runInstall(params *input.InstallationParams) (string, error) {
 		return "", fmt.Errorf("无法设置脚本执行权限: %v", err)
 	}
 
-	cmdInstall := exec.Command("sudo", argsWithSudo...)
+	cmdInstall := exec.Command("./oneinstack/oneinstack/install.sh", argsWithSudo...)
 
 	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
 	logFile, err := os.Create(logFileName)

@@ -395,6 +395,7 @@ Main() {
 Main
 
 `
+
 var mysql80 = ``
 
 var redis = `
@@ -616,6 +617,7 @@ func (ps InstallOP) Install() (string, error) {
 		bash = redis
 	case "php":
 	case "java":
+		bash = `echo 123`
 	default:
 		return "", fmt.Errorf("未知的软件类型")
 	}
@@ -650,7 +652,7 @@ func (ps InstallOP) Install() (string, error) {
 	case "php":
 		return "", nil
 	case "java":
-		return "", nil
+		return ps.executeShScript(fn)
 	default:
 		return "", fmt.Errorf("未知的软件类型")
 	}
@@ -695,15 +697,17 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 	if err != nil {
 		return "", err
 	}
-	app.DB().Where("key = ?", ps.BashParams.Key).Update("status", models.Soft_Status_Ing)
+	tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Ing, Log: logFileName})
+	if tx.Error != nil {
+		fmt.Println(tx.Error.Error())
+	}
 	go func(bp *input.InstallParams) {
 		err = cmd.Wait()
 		if err != nil {
 			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-			app.DB().Where("key = ?", bp.Key).Update("status", models.Soft_Status_Err)
 			return
 		}
-		app.DB().Where("key = ?", bp.Key).Update("status", models.Soft_Status_Suc)
+		app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
 	}(ps.BashParams)
 	return logFileName, nil
 }

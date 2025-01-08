@@ -24,6 +24,7 @@ type Software struct {
 	Tags       string    `json:"tags"`
 	Version    string    `json:"version"`
 	Params     string    `json:"params"`
+	Log        string    `json:"log"`
 	CreateTime time.Time `json:"create_time"`
 }
 

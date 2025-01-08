@@ -510,15 +510,93 @@ cd /tmp/nginx-$NGINX_VERSION
 
 # 编译和安装 Nginx
 echo "正在编译 Nginx..."
-./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_v2_module --with-pcre
+./configure \
+  --prefix=/usr/local/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
+  --sbin-path=/usr/local/nginx/sbin/nginx \
+  --error-log-path=/var/log/nginx/error.log \
+  --http-log-path=/var/log/nginx/access.log \
+  --pid-path=/run/nginx.pid \
+  --lock-path=/var/lock/nginx.lock \
+  --http-client-body-temp-path=/var/lib/nginx/body \
+  --http-proxy-temp-path=/var/lib/nginx/proxy \
+  --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+  --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+  --http-scgi-temp-path=/var/lib/nginx/scgi \
+  --with-http_ssl_module \
+  --with-http_v2_module \
+  --with-pcre
+
 make
 make install
 
+# 创建必要的文件夹和设置配置结构
+echo "正在创建配置和日志目录..."
+mkdir -p /etc/nginx/sites-available
+mkdir -p /etc/nginx/sites-enabled
+mkdir -p /var/lib/nginx/{body,proxy,fastcgi,uwsgi,scgi}
+mkdir -p /var/log/nginx
+
+# 配置默认的 nginx.conf
+echo "正在创建 nginx 配置文件..."
+cat > /etc/nginx/nginx.conf <<EOF
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    gzip on;
+
+    include /etc/nginx/sites-enabled/*;
+}
+EOF
+
+# 创建一个默认站点配置
+echo "创建默认站点配置..."
+cat > /etc/nginx/sites-available/default <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html;
+    index index.html index.htm;
+
+    server_name _;
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+
+# 启用默认站点
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# 创建默认站点目录
+mkdir -p /var/www/html
+echo "<!DOCTYPE html><html><head><title>Welcome to Nginx!</title></head><body><h1>Success! Nginx is installed and configured.</h1></body></html>" > /var/www/html/index.html
+
 # 配置 Nginx 为系统服务
 echo "正在配置 Nginx 服务..."
-
-# 创建 Nginx 启动脚本
-echo "[Unit]
+cat > /etc/systemd/system/nginx.service <<EOF
+[Unit]
 Description=NGINX
 After=network.target
 
@@ -526,26 +604,20 @@ After=network.target
 ExecStart=/usr/local/nginx/sbin/nginx
 ExecReload=/usr/local/nginx/sbin/nginx -s reload
 ExecStop=/usr/local/nginx/sbin/nginx -s stop
-PIDFile=/usr/local/nginx/logs/nginx.pid
+PIDFile=/run/nginx.pid
 User=www-data
 Group=www-data
 WorkingDirectory=/usr/local/nginx
 
 [Install]
-WantedBy=multi-user.target" > /etc/systemd/system/nginx.service
-
-# 创建必要的文件夹
-echo "创建日志和临时目录..."
-mkdir -p /usr/local/nginx/logs
-mkdir -p /usr/local/nginx/client_body_temp
-mkdir -p /usr/local/nginx/proxy_temp
-mkdir -p /usr/local/nginx/fastcgi_temp
-mkdir -p /usr/local/nginx/scgi_temp
-mkdir -p /usr/local/nginx/uwsgi_temp
+WantedBy=multi-user.target
+EOF
 
 # 设置文件夹权限
-chown -R www-data:www-data /usr/local/nginx
-chmod -R 755 /usr/local/nginx
+chown -R www-data:www-data /var/www/html
+chown -R www-data:www-data /var/log/nginx
+chown -R www-data:www-data /var/lib/nginx
+chmod -R 755 /var/www/html
 
 # 设置 Nginx 服务为开机自启
 systemctl enable nginx
@@ -562,7 +634,9 @@ rm -rf /tmp/nginx*
 
 # 输出安装信息
 echo "Nginx $NGINX_VERSION 安装完成！"
-echo "访问 http://<your_server_ip> 来查看 Nginx 默认页面"
+echo "默认配置文件位于 /etc/nginx/nginx.conf"
+echo "站点配置目录为 /etc/nginx/sites-available 和 /etc/nginx/sites-enabled"
+echo "访问 http://<your_server_ip> 来查看默认页面"
 
 `
 

@@ -195,7 +195,7 @@ func ReloadNginxConfig() error {
 	}
 
 	// 重载 Nginx 配置
-	reloadCmd := exec.Command("nginx", "-s", "reload")
+	reloadCmd := exec.Command("systemctl", "restart", "nginx")
 	reloadCmd.Stdout = os.Stdout
 	reloadCmd.Stderr = os.Stderr
 

@@ -182,53 +182,41 @@ main
 var mysql57 = `
 #!/bin/bash
 
-# MySQL版本
+# 默认参数
 MYSQL_VERSION="5.7.40"
 MYSQL_DOWNLOAD_URL="https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-${MYSQL_VERSION}.tar.gz"
-
-# Boost版本
-BOOST_VERSION="1.59.0"
-BOOST_DOWNLOAD_URL="https://zenlayer.dl.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.tar.gz?viasf=1"
-BOOST_INSTALL_DIR="/usr/local/boost"
-
-# OpenSSL版本
-OPENSSL_VERSION="1.1.1u"
-OPENSSL_DOWNLOAD_URL="https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
-OPENSSL_INSTALL_DIR="/usr/local/openssl"
-
-# Zlib版本
-ZLIB_VERSION="1.2.13"
-ZLIB_DOWNLOAD_URL="https://www.zlib.net/fossils/zlib-${ZLIB_VERSION}.tar.gz"
-ZLIB_INSTALL_DIR="/usr/local/zlib"
-
-# 安装目录
 MYSQL_INSTALL_DIR="/usr/local/mysql"
 MYSQL_DATA_DIR="/data/mysql"
-
-# 初始化 root 密码变量
 MYSQL_ROOT_PASSWORD=""
+MYSQL_PORT=3306
+
+# 帮助信息
+usage() {
+  echo "Usage: $0 -p <root_password> -P <mysql_port>"
+  echo "  -p  设置 MySQL root 密码 (必需)"
+  echo "  -P  设置 MySQL 端口号 (默认: 3306)"
+  exit 1
+}
+
+# 解析参数
+while getopts "p:P:h" opt; do
+  case $opt in
+    p) MYSQL_ROOT_PASSWORD="$OPTARG" ;;
+    P) MYSQL_PORT="$OPTARG" ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+
+# 检查是否提供了 root 密码
+if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+  echo "错误: 必须提供 root 密码 (-p)"
+  usage
+fi
 
 # 检查是否为 root 用户
 if [ "$(id -u)" != "0" ]; then
   echo "请以 root 用户运行该脚本"
-  exit 1
-fi
-
-# 参数解析
-while getopts "p:" opt; do
-  case "$opt" in
-    p) MYSQL_ROOT_PASSWORD="$OPTARG" ;;
-    *)
-      echo "用法: $0 -p <root_password>"
-      exit 1
-      ;;
-  esac
-done
-
-# 验证是否提供了 root 密码
-if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-  echo "错误: 必须使用 -p 参数指定 MySQL root 密码。"
-  echo "用法: $0 -p <root_password>"
   exit 1
 fi
 
@@ -259,54 +247,12 @@ Install_Dependencies() {
 
 # 创建 mysql 用户和组
 Create_MySQL_User() {
-  echo "检查并创建 mysql 用户和组..."
-  if ! id mysql &>/dev/null; then
+  if ! id -u mysql &>/dev/null; then
+    echo "创建 mysql 用户和组..."
     groupadd mysql
     useradd -r -g mysql -s /bin/false mysql
-    echo "mysql 用户和组已创建。"
   else
-    echo "mysql 用户和组已存在。"
-  fi
-}
-
-Install_Zlib() {
-  if [ ! -d "${ZLIB_INSTALL_DIR}" ]; then
-    echo "安装 Zlib ${ZLIB_VERSION}..."
-    wget -c "${ZLIB_DOWNLOAD_URL}" -O zlib.tar.gz || { echo "下载 Zlib 失败"; exit 1; }
-    tar xf zlib.tar.gz
-    cd "zlib-${ZLIB_VERSION}" || exit
-    ./configure --prefix=${ZLIB_INSTALL_DIR}
-    make -j"$(nproc)"
-    make install
-    cd ..
-  else
-    echo "Zlib ${ZLIB_VERSION} 已安装，路径：${ZLIB_INSTALL_DIR}"
-  fi
-}
-
-Install_Boost() {
-  if [ ! -d "${BOOST_INSTALL_DIR}" ]; then
-    echo "安装 Boost ${BOOST_VERSION}..."
-    wget -c "${BOOST_DOWNLOAD_URL}" -O boost.tar.gz || { echo "下载 Boost 失败"; exit 1; }
-    tar xf boost.tar.gz
-    mv boost_1_59_0 "${BOOST_INSTALL_DIR}"
-  else
-    echo "Boost ${BOOST_VERSION} 已安装，路径：${BOOST_INSTALL_DIR}"
-  fi
-}
-
-Install_OpenSSL() {
-  if [ ! -d "${OPENSSL_INSTALL_DIR}" ]; then
-    echo "安装 OpenSSL ${OPENSSL_VERSION}..."
-    wget -c "${OPENSSL_DOWNLOAD_URL}" -O openssl.tar.gz || { echo "下载 OpenSSL 失败"; exit 1; }
-    tar xf openssl.tar.gz
-    cd "openssl-${OPENSSL_VERSION}" || exit
-    ./config --prefix=${OPENSSL_INSTALL_DIR} no-ssl2 no-ssl3
-    make -j"$(nproc)"
-    make install
-    cd ..
-  else
-    echo "OpenSSL ${OPENSSL_VERSION} 已安装，路径：${OPENSSL_INSTALL_DIR}"
+    echo "mysql 用户和组已存在"
   fi
 }
 
@@ -319,18 +265,25 @@ Download_MySQL() {
   tar xf "mysql-${MYSQL_VERSION}.tar.gz"
 }
 
+# 编译并安装 MySQL
 Install_MySQL() {
   cd "mysql-${MYSQL_VERSION}" || exit
   cmake . \
   -DCMAKE_INSTALL_PREFIX=${MYSQL_INSTALL_DIR} \
   -DMYSQL_DATADIR=${MYSQL_DATA_DIR} \
   -DWITH_INNOBASE_STORAGE_ENGINE=1 \
-  -DWITH_SSL=${OPENSSL_INSTALL_DIR} \
+  -DWITH_ARCHIVE_STORAGE_ENGINE=1 \
+  -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+  -DWITH_FEDERATED_STORAGE_ENGINE=1 \
+  -DWITH_PARTITION_STORAGE_ENGINE=1 \
+  -DENABLED_LOCAL_INFILE=1 \
+  -DWITH_SSL=bundled \
   -DWITH_ZLIB=bundled \
-  -DWITH_BOOST=${BOOST_INSTALL_DIR} \
+  -DWITH_BOOST=boost \
+  -DCMAKE_C_FLAGS="-fPIC" \
   -DDEFAULT_CHARSET=utf8 \
   -DDEFAULT_COLLATION=utf8_general_ci \
-  -DMYSQL_TCP_PORT=3306 \
+  -DMYSQL_TCP_PORT=${MYSQL_PORT} \
   -DMYSQL_UNIX_ADDR=/tmp/mysql.sock
 
   make -j"$(nproc)"
@@ -338,60 +291,62 @@ Install_MySQL() {
   cd ..
 }
 
+# 初始化 MySQL
 Initialize_MySQL() {
   echo "初始化 MySQL 数据目录..."
+
+  # 检查并创建数据目录
   if [ ! -d "${MYSQL_DATA_DIR}" ]; then
+    echo "创建数据目录：${MYSQL_DATA_DIR}..."
     mkdir -p "${MYSQL_DATA_DIR}"
     chown -R mysql:mysql "${MYSQL_DATA_DIR}"
     chmod 750 "${MYSQL_DATA_DIR}"
   fi
 
+  # 初始化数据目录
   ${MYSQL_INSTALL_DIR}/bin/mysqld --initialize-insecure --user=mysql --basedir=${MYSQL_INSTALL_DIR} --datadir=${MYSQL_DATA_DIR}
 
-  echo "MySQL 数据目录初始化完成。"
+  echo "启动 MySQL 服务..."
+  ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql --port=${MYSQL_PORT} &
+  sleep 10
+
+  echo "修改 root 密码..."
+  ${MYSQL_INSTALL_DIR}/bin/mysqladmin -uroot password "${MYSQL_ROOT_PASSWORD}" || echo "无法修改密码，请手动检查。"
+
+  echo "MySQL 初始化完成，root 密码已设置为: ${MYSQL_ROOT_PASSWORD}, 端口: ${MYSQL_PORT}"
 }
 
+# 配置环境变量
 Configure_Environment() {
   echo "配置环境变量..."
   if ! grep -q "${MYSQL_INSTALL_DIR}/bin" /etc/profile; then
     echo "export PATH=\$PATH:${MYSQL_INSTALL_DIR}/bin" >> /etc/profile
     source /etc/profile
   fi
+  echo "环境变量配置完成"
 }
 
+# 启动 MySQL
 Start_MySQL() {
   echo "启动 MySQL 服务..."
-  ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql &
-  sleep 10
-  if ! pgrep -f mysqld &>/dev/null; then
-    echo "MySQL 启动失败，请检查日志。"
-    exit 1
-  fi
-  echo "MySQL 服务已启动。"
+  ${MYSQL_INSTALL_DIR}/bin/mysqld_safe --user=mysql --port=${MYSQL_PORT} &
+  echo "MySQL 启动完成，端口: ${MYSQL_PORT}"
 }
 
-Set_Root_Password() {
-  echo "设置 root 密码..."
-  ${MYSQL_INSTALL_DIR}/bin/mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-  echo "root 密码已设置为：${MYSQL_ROOT_PASSWORD}"
-}
-
+# 主函数
 Main() {
   Detect_OS
   Install_Dependencies
   Create_MySQL_User
-  Install_OpenSSL
-  Install_Zlib
-  Install_Boost
   Download_MySQL
   Install_MySQL
   Initialize_MySQL
   Configure_Environment
   Start_MySQL
-  Set_Root_Password
-  echo "MySQL ${MYSQL_VERSION} 安装和配置完成。"
+  echo "MySQL ${MYSQL_VERSION} 安装完成，root 密码: ${MYSQL_ROOT_PASSWORD}, 端口: ${MYSQL_PORT}"
 }
 
+# 执行主函数
 Main
 
 `
@@ -399,11 +354,10 @@ Main
 var mysql80 = ``
 
 var redis = `
-
 #!/bin/bash
 
 # 脚本名称：install_redis.sh
-# 用途：从源码安装 Redis 6 或 Redis 7
+# 用途：从源码安装 Redis 6 或 Redis 7，适配主流 Linux 发行版
 
 # 检查是否有 root 权限
 if [[ $EUID -ne 0 ]]; then
@@ -419,9 +373,26 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+# 检测发行版
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+    OS=$ID
+else
+    echo "无法检测操作系统类型，脚本仅支持 Ubuntu/Debian 和 CentOS/RHEL"
+    exit 1
+fi
+
 # 安装依赖
 echo "正在安装依赖..."
-apt-get update && apt-get install -y build-essential tcl wget
+if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
+    apt-get update && apt-get install -y build-essential tcl wget
+elif [[ "$OS" == "centos" || "$OS" == "rhel" ]]; then
+    yum groupinstall -y "Development Tools"
+    yum install -y tcl wget
+else
+    echo "当前操作系统不受支持"
+    exit 1
+fi
 
 # 设置版本
 VERSION="$1"
@@ -451,15 +422,16 @@ make install
 echo "正在配置 Redis..."
 cp /tmp/redis-*/redis.conf /etc/redis.conf
 
-# 创建 Redis 用户
-useradd -r -s /bin/false redis
-
-# 创建 Redis 数据目录
-mkdir /var/lib/redis
+# 创建 Redis 用户和数据目录
+if ! id "redis" &>/dev/null; then
+    useradd -r -s /bin/false redis
+fi
+mkdir -p /var/lib/redis
 chown redis:redis /var/lib/redis
 
 # 创建 Redis 启动脚本
-echo "[Unit]
+cat > /etc/systemd/system/redis.service <<EOF
+[Unit]
 Description=Redis In-Memory Data Store
 After=network.target
 
@@ -472,9 +444,10 @@ WorkingDirectory=/var/lib/redis
 Restart=always
 
 [Install]
-WantedBy=multi-user.target" > /etc/systemd/system/redis.service
+WantedBy=multi-user.target
+EOF
 
-# 设置 Redis 服务为开机自启
+# 设置 Redis 服务为开机自启并启动
 systemctl enable redis
 systemctl start redis
 
@@ -489,7 +462,7 @@ var nginx = `
 #!/bin/bash
 
 # 脚本名称：install_nginx.sh
-# 用途：从源码安装 Nginx（使用国内源下载）
+# 用途：从源码安装 Nginx（适配主流 Linux 系统）
 
 # 检查是否有 root 权限
 if [[ $EUID -ne 0 ]]; then
@@ -497,12 +470,33 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# 安装依赖
-echo "正在安装依赖..."
-apt-get update && apt-get install -y build-essential libpcre3 libpcre3-dev libssl-dev zlib1g-dev wget
+# 检测操作系统类型
+OS=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '"')
+echo "检测到操作系统为 $OS"
 
-# 下载 Nginx 源码（使用阿里云镜像）
-NGINX_VERSION="1.24.0"  # 指定 Nginx 版本
+# 定义安装依赖的函数
+install_dependencies() {
+    echo "正在安装依赖..."
+    case $OS in
+        ubuntu | debian)
+            apt-get update && apt-get install -y build-essential libpcre3 libpcre3-dev libssl-dev zlib1g-dev wget
+            ;;
+        centos | rhel | rocky | almalinux | fedora)
+            yum groupinstall -y "Development Tools"
+            yum install -y pcre pcre-devel openssl-devel zlib-devel wget
+            ;;
+        *)
+            echo "未支持的操作系统: $OS"
+            exit 1
+            ;;
+    esac
+}
+
+# 调用安装依赖函数
+install_dependencies
+
+# 下载 Nginx 源码
+NGINX_VERSION="1.24.0"
 echo "正在从国内源下载 Nginx $NGINX_VERSION 源码..."
 wget https://mirrors.huaweicloud.com/nginx/nginx-$NGINX_VERSION.tar.gz -O /tmp/nginx.tar.gz
 tar -zxvf /tmp/nginx.tar.gz -C /tmp
@@ -540,50 +534,37 @@ mkdir -p /var/log/nginx
 # 配置默认的 nginx.conf
 echo "正在创建 nginx 配置文件..."
 cat > /etc/nginx/nginx.conf <<EOF
-user www-data;
-worker_processes auto;
-pid /run/nginx.pid;
-include /etc/nginx/modules-enabled/*.conf;
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+include /etc/nginx/sites-enabled/*;
 
 events {
-    worker_connections 768;
+    worker_connections  1024;
 }
 
 http {
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
-    types_hash_max_size 2048;
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
 
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
 
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
+    access_log  /var/log/nginx/access.log  main;
 
-    gzip on;
+    sendfile        on;
+    #tcp_nopush     on;
 
-    include /etc/nginx/sites-enabled/*;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
 }
-EOF
 
-# 创建一个默认站点配置
-echo "创建默认站点配置..."
-cat > /etc/nginx/sites-available/default <<EOF
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
 EOF
 
 # 启用默认站点
@@ -709,7 +690,7 @@ func (ps InstallOP) Install() (string, error) {
 			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
 		}
 		if ps.BashParams.Version == "5.7" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
 		}
 		if ps.BashParams.Version == "8.0" {
 			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd)

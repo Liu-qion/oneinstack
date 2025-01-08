@@ -26,7 +26,11 @@ func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
 	return InstallOP{Params: nil, BashParams: p}, nil
 }
 
-func (ps InstallOP) Install() (string, error) {
+func (ps InstallOP) Install(sync ...bool) (string, error) {
+	sy := false
+	if len(sync) > 0 {
+		sy = sync[0]
+	}
 	bash := ""
 	switch ps.BashParams.Key {
 	case "webserver":
@@ -60,41 +64,41 @@ func (ps InstallOP) Install() (string, error) {
 
 	switch ps.BashParams.Key {
 	case "webserver":
-		return ps.executeShScript(fn)
+		return ps.executeShScript(fn, sy)
 	case "db":
 		if ps.BashParams.Version == "5.5" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
+			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		if ps.BashParams.Version == "5.7" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
+			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		if ps.BashParams.Version == "8.0" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", "3306")
+			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
 		}
 		return "", fmt.Errorf("未知的db类型")
 	case "redis":
 		if ps.BashParams.Version == "6.2.0" {
-			return ps.executeShScript(fn, "6")
+			return ps.executeShScript(fn, sy, "6")
 		}
 		if ps.BashParams.Version == "7.0.5" {
-			return ps.executeShScript(fn, "7")
+			return ps.executeShScript(fn, sy, "7")
 		}
 		return "", fmt.Errorf("未知的redis类型")
 	case "php":
 		if ps.BashParams.Version == "5.6" {
-			return ps.executeShScript(fn, "5")
+			return ps.executeShScript(fn, sy, "5")
 		}
 		if ps.BashParams.Version == "7.4" {
-			return ps.executeShScript(fn, "7")
+			return ps.executeShScript(fn, sy, "7")
 		}
 		if ps.BashParams.Version == "8.1" {
-			return ps.executeShScript(fn, "8")
+			return ps.executeShScript(fn, sy, "8")
 		}
 		return "", nil
 	case "java":
-		return ps.executeShScript(fn)
+		return ps.executeShScript(fn, sy)
 	case "phpmyadmin":
-		return ps.executeShScript(fn)
+		return ps.executeShScript(fn, sy)
 	default:
 		return "", fmt.Errorf("未知的软件类型")
 	}
@@ -121,7 +125,7 @@ func (ps InstallOP) createShScript(scriptContent, filename string) (string, erro
 }
 
 // executeShScript 执行指定的脚本文件，并支持传递命令行参数
-func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, error) {
+func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string) (string, error) {
 	// 拼接完整的命令：bash scriptName args...
 	cmdArgs := append([]string{scriptName}, args...)
 	cmd := exec.Command("bash", cmdArgs...)
@@ -143,10 +147,22 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 	if tx.Error != nil {
 		fmt.Println(tx.Error.Error())
 	}
-	go func(bp *input.InstallParams) {
-		fmt.Println("cmd running")
+	if sync {
+		fmt.Println("cmd running" + scriptName)
 		err = cmd.Wait()
-		fmt.Println("cmd done")
+		fmt.Println("cmd done" + scriptName)
+		if err != nil {
+			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+		}
+		app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+		return logFileName, nil
+	}
+
+	go func(bp *input.InstallParams) {
+		fmt.Println("cmd running" + scriptName)
+		err = cmd.Wait()
+		fmt.Println("cmd done" + scriptName)
 		defer func() {
 			if err != nil {
 				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))

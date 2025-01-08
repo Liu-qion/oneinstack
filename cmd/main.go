@@ -5,9 +5,11 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"oneinstack/app"
+	"oneinstack/internal/services/software"
 	"oneinstack/internal/services/user"
 	"oneinstack/server"
 	"oneinstack/web"
+	"oneinstack/web/input"
 	"os"
 )
 
@@ -19,6 +21,7 @@ func main() {
 	adduserCmd.Flags().StringP("pwd", "p", "", "password")
 
 	// 将命令添加到根命令
+	rootCmd.AddCommand(install)
 	rootCmd.AddCommand(adduserCmd)
 	rootCmd.AddCommand(serverCmd)
 
@@ -62,5 +65,40 @@ var adduserCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Add user error: %v", err)
 		}
+	},
+}
+
+var install = &cobra.Command{
+	Use:     "install",
+	Short:   "安装 nginx php phpmyadmin",
+	Example: " run install ",
+	Run: func(cmd *cobra.Command, args []string) {
+		softToSeed := []*input.InstallParams{
+			{
+				Key:     "webserver",
+				Version: "1.24.0",
+			},
+			{
+				Key:     "php",
+				Version: "7.4",
+			},
+			{
+				Key:     "phpmyadmin",
+				Version: "5.2.1",
+			},
+		}
+		for _, v := range softToSeed {
+			op, err := software.NewInstallOP(v)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			_, err = op.Install()
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+		}
+
 	},
 }

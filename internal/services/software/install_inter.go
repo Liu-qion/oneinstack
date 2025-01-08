@@ -12,6 +12,239 @@ import (
 	"time"
 )
 
+type InstallOPI interface {
+	Install() (string, error)
+}
+
+type InstallOP struct {
+	Params     *input.InstallationParams
+	BashParams *input.InstallParams
+}
+
+func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
+	//params := buildIParams(p)
+	return InstallOP{Params: nil, BashParams: p}, nil
+}
+
+func (ps InstallOP) Install() (string, error) {
+	bash := ""
+	switch ps.BashParams.Key {
+	case "webserver":
+		bash = nginx
+	case "db":
+		if ps.BashParams.Version == "5.5" {
+			bash = mysql55
+		}
+		if ps.BashParams.Version == "5.7" {
+			bash = mysql57
+		}
+		if ps.BashParams.Version == "8.0" {
+			bash = mysql80
+		}
+	case "redis":
+		bash = redis
+	case "php":
+		params := buildIParams(ps.BashParams)
+		return runInstall(params)
+	case "java":
+		bash = `echo 123`
+	default:
+		return "", fmt.Errorf("未知的软件类型")
+	}
+	fn, err := ps.createShScript(bash, ps.BashParams.Key+ps.BashParams.Version+".sh")
+	if err != nil {
+		return "", err
+
+	}
+
+	switch ps.BashParams.Key {
+	case "webserver":
+		return ps.executeShScript(fn)
+	case "db":
+		if ps.BashParams.Version == "5.5" {
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+		}
+		if ps.BashParams.Version == "5.7" {
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+		}
+		if ps.BashParams.Version == "8.0" {
+			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
+		}
+		return "", fmt.Errorf("未知的db类型")
+	case "redis":
+		if ps.BashParams.Version == "6.2.0" {
+			return ps.executeShScript(fn, "6")
+		}
+		if ps.BashParams.Version == "7.0.5" {
+			return ps.executeShScript(fn, "7")
+		}
+		return "", fmt.Errorf("未知的redis类型")
+	case "php":
+		return "", nil
+	case "java":
+		return ps.executeShScript(fn)
+	default:
+		return "", fmt.Errorf("未知的软件类型")
+	}
+}
+
+// createShScript 将字符串内容保存为.sh脚本文件，如果文件已存在则覆盖
+func (ps InstallOP) createShScript(scriptContent, filename string) (string, error) {
+	// 打开文件，如果文件不存在则创建，权限设置为可读可写可执行
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return "", fmt.Errorf("无法打开文件: %v", err)
+	}
+	defer file.Close()
+
+	// 写入脚本内容
+	_, err = file.WriteString(scriptContent)
+	if err != nil {
+		return "", fmt.Errorf("写入文件失败: %v", err)
+	}
+
+	// 打印成功信息
+	fmt.Printf("脚本已保存为 %s\n", filename)
+	return filename, nil
+}
+
+// executeShScript 执行指定的脚本文件，并支持传递命令行参数
+func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, error) {
+	// 拼接完整的命令：bash scriptName args...
+	cmdArgs := append([]string{scriptName}, args...)
+	cmd := exec.Command("bash", cmdArgs...)
+
+	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		return "", fmt.Errorf("无法创建日志文件: %v", err)
+	}
+	defer logFile.Close()
+
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+	err = cmd.Start()
+	if err != nil {
+		return "", err
+	}
+	tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Ing, Log: logFileName})
+	if tx.Error != nil {
+		fmt.Println(tx.Error.Error())
+	}
+	go func(bp *input.InstallParams) {
+		fmt.Println("cmd running")
+		err = cmd.Wait()
+		fmt.Println("cmd done")
+		defer func() {
+			if err != nil {
+				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+				return
+			}
+			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+		}()
+	}(ps.BashParams)
+	return logFileName, nil
+}
+
+func runInstall(params *input.InstallationParams) (string, error) {
+	err := downloadshell()
+	if err != nil {
+		return "", err
+	}
+
+	// 构建命令行参数列表
+	cmdArgs := params.BuildCmdArgs()
+	argsWithSudo := append([]string{"./oneinstack/oneinstack/install.sh"}, cmdArgs...)
+
+	// 添加执行权限
+	dirPath := "./oneinstack/oneinstack/include"
+	err = utils.SetExecPermissions(dirPath)
+	if err != nil {
+		return "", fmt.Errorf("设置 include 目录下文件的执行权限失败: %v", err)
+	}
+
+	scriptPath := "./oneinstack/oneinstack/install.sh"
+	err = os.Chmod(scriptPath, 0755)
+	if err != nil {
+		return "", fmt.Errorf("无法设置脚本执行权限: %v", err)
+	}
+
+	cmdInstall := exec.Command("sudo", argsWithSudo...)
+
+	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		return "", fmt.Errorf("无法创建日志文件: %v", err)
+	}
+	defer logFile.Close()
+
+	cmdInstall.Stdout = logFile
+	cmdInstall.Stderr = logFile
+	err = cmdInstall.Start()
+	if err != nil {
+		return "", err
+	}
+	go func() {
+		err = cmdInstall.Wait()
+		if err != nil {
+			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
+		}
+	}()
+
+	return logFileName, nil
+}
+
+// checkIfFileExists 检查文件是否存在。
+func checkIfFileExists(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+// downloadOneInstack 如果 oneinstack.tar.gz 不存在则下载它。
+func downloadshell() error {
+	tarFilePath := filepath.Join(".", "oneinstack.tar.gz")
+	if !checkIfFileExists(tarFilePath) {
+		fmt.Println("oneinstack.tar.gz does not exist. Downloading...")
+		err := utils.DownloadFile("https://mirrors.oneinstack.com/oneinstack.tar.gz", tarFilePath)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Download completed.\n")
+	} else {
+		fmt.Println("oneinstack.tar.gz already exists, skipping download.")
+	}
+	return utils.DecompressTarGz(tarFilePath, filepath.Join(".", "oneinstack"))
+}
+
+func buildIParams(p *input.InstallParams) *input.InstallationParams {
+	ps := &input.InstallationParams{}
+	switch p.Key {
+	case "webserver":
+		ps.NginxOption = p.Version
+	case "db":
+		ps.DBOption = p.Version
+		ps.DBRootPWD = p.Pwd
+	case "redis":
+		ps.Redis = true
+	case "php":
+		if p.Version == "5.6" {
+			ps.PHPOption = "4"
+		}
+		if p.Version == "7.0" {
+			ps.PHPOption = "5"
+		}
+		if p.Version == "8.0" {
+			ps.PHPOption = "10"
+		}
+	case "java":
+		ps.JDKOption = p.Version
+	}
+	return ps
+}
+
 var mysql55 = `
 #!/bin/bash
 
@@ -668,225 +901,4 @@ echo "站点配置目录为 /etc/nginx/sites-available 和 /etc/nginx/sites-enab
 
 `
 
-type InstallOPI interface {
-	Install() (string, error)
-}
-
-type InstallOP struct {
-	Params     *input.InstallationParams
-	BashParams *input.InstallParams
-}
-
-func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
-	//params := buildIParams(p)
-	return InstallOP{Params: nil, BashParams: p}, nil
-}
-
-func buildIParams(p *input.InstallParams) *input.InstallationParams {
-	ps := &input.InstallationParams{}
-	switch p.Key {
-	case "webserver":
-		ps.NginxOption = p.Version
-	case "db":
-		ps.DBOption = p.Version
-		ps.DBRootPWD = p.Pwd
-	case "redis":
-		ps.Redis = true
-	case "php":
-		ps.PHPOption = p.Version
-	case "java":
-		ps.JDKOption = p.Version
-	}
-	return ps
-}
-
-func (ps InstallOP) Install() (string, error) {
-	bash := ""
-	switch ps.BashParams.Key {
-	case "webserver":
-		bash = nginx
-	case "db":
-		if ps.BashParams.Version == "5.5" {
-			bash = mysql55
-		}
-		if ps.BashParams.Version == "5.7" {
-			bash = mysql57
-		}
-		if ps.BashParams.Version == "8.0" {
-			bash = mysql80
-		}
-	case "redis":
-		bash = redis
-	case "php":
-	case "java":
-		bash = `echo 123`
-	default:
-		return "", fmt.Errorf("未知的软件类型")
-	}
-	fn, err := ps.createShScript(bash, ps.BashParams.Key+ps.BashParams.Version+".sh")
-	if err != nil {
-		return "", err
-
-	}
-
-	switch ps.BashParams.Key {
-	case "webserver":
-		return ps.executeShScript(fn)
-	case "db":
-		if ps.BashParams.Version == "5.5" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
-		}
-		if ps.BashParams.Version == "5.7" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
-		}
-		if ps.BashParams.Version == "8.0" {
-			return ps.executeShScript(fn, "-p", ps.BashParams.Pwd, "-P", ps.BashParams.Port)
-		}
-		return "", fmt.Errorf("未知的db类型")
-	case "redis":
-		if ps.BashParams.Version == "6.2.0" {
-			return ps.executeShScript(fn, "6")
-		}
-		if ps.BashParams.Version == "7.0.5" {
-			return ps.executeShScript(fn, "7")
-		}
-		return "", fmt.Errorf("未知的redis类型")
-	case "php":
-		return "", nil
-	case "java":
-		return ps.executeShScript(fn)
-	default:
-		return "", fmt.Errorf("未知的软件类型")
-	}
-}
-
-// createShScript 将字符串内容保存为.sh脚本文件，如果文件已存在则覆盖
-func (ps InstallOP) createShScript(scriptContent, filename string) (string, error) {
-	// 打开文件，如果文件不存在则创建，权限设置为可读可写可执行
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		return "", fmt.Errorf("无法打开文件: %v", err)
-	}
-	defer file.Close()
-
-	// 写入脚本内容
-	_, err = file.WriteString(scriptContent)
-	if err != nil {
-		return "", fmt.Errorf("写入文件失败: %v", err)
-	}
-
-	// 打印成功信息
-	fmt.Printf("脚本已保存为 %s\n", filename)
-	return filename, nil
-}
-
-// executeShScript 执行指定的脚本文件，并支持传递命令行参数
-func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, error) {
-	// 拼接完整的命令：bash scriptName args...
-	cmdArgs := append([]string{scriptName}, args...)
-	cmd := exec.Command("bash", cmdArgs...)
-
-	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
-	logFile, err := os.Create(logFileName)
-	if err != nil {
-		return "", fmt.Errorf("无法创建日志文件: %v", err)
-	}
-	defer logFile.Close()
-
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
-	err = cmd.Start()
-	if err != nil {
-		return "", err
-	}
-	tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Ing, Log: logFileName})
-	if tx.Error != nil {
-		fmt.Println(tx.Error.Error())
-	}
-	go func(bp *input.InstallParams) {
-		fmt.Println("cmd running")
-		err = cmd.Wait()
-		fmt.Println("cmd done")
-		defer func() {
-			if err != nil {
-				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
-				return
-			}
-			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
-		}()
-	}(ps.BashParams)
-	return logFileName, nil
-}
-
-func runInstall(params *input.InstallationParams) (string, error) {
-	err := downloadshell()
-	if err != nil {
-		return "", err
-	}
-
-	// 构建命令行参数列表
-	cmdArgs := params.BuildCmdArgs()
-	argsWithSudo := append([]string{"./oneinstack/oneinstack/install.sh"}, cmdArgs...)
-
-	// 添加执行权限
-	dirPath := "./oneinstack/oneinstack/include"
-	err = utils.SetExecPermissions(dirPath)
-	if err != nil {
-		return "", fmt.Errorf("设置 include 目录下文件的执行权限失败: %v", err)
-	}
-
-	scriptPath := "./oneinstack/oneinstack/install.sh"
-	err = os.Chmod(scriptPath, 0755)
-	if err != nil {
-		return "", fmt.Errorf("无法设置脚本执行权限: %v", err)
-	}
-
-	cmdInstall := exec.Command("sudo", argsWithSudo...)
-
-	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
-	logFile, err := os.Create(logFileName)
-	if err != nil {
-		return "", fmt.Errorf("无法创建日志文件: %v", err)
-	}
-	defer logFile.Close()
-
-	cmdInstall.Stdout = logFile
-	cmdInstall.Stderr = logFile
-	err = cmdInstall.Start()
-	if err != nil {
-		return "", err
-	}
-	go func() {
-		err = cmdInstall.Wait()
-		if err != nil {
-			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-		}
-	}()
-
-	return logFileName, nil
-}
-
-// checkIfFileExists 检查文件是否存在。
-func checkIfFileExists(filename string) bool {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
-// downloadOneInstack 如果 oneinstack.tar.gz 不存在则下载它。
-func downloadshell() error {
-	tarFilePath := filepath.Join(".", "oneinstack.tar.gz")
-	if !checkIfFileExists(tarFilePath) {
-		fmt.Println("oneinstack.tar.gz does not exist. Downloading...")
-		err := utils.DownloadFile("https://mirrors.oneinstack.com/oneinstack.tar.gz", tarFilePath)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Download completed.\n")
-	} else {
-		fmt.Println("oneinstack.tar.gz already exists, skipping download.")
-	}
-	return utils.DecompressTarGz(tarFilePath, filepath.Join(".", "oneinstack"))
-}
+var php = ``

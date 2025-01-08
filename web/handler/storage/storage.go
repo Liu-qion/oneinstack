@@ -75,25 +75,6 @@ func UpdateStorage(c *gin.Context) {
 	core.HandleSuccess(c, "")
 }
 
-func UpdateLib(c *gin.Context) {
-	var req input.AddParam
-	if err := c.ShouldBindJSON(&req); err != nil {
-		core.HandleError(c, http.StatusUnauthorized, core.ErrBadRequest, err)
-		return
-	}
-	err := req.Validate()
-	if err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
-		return
-	}
-	err = storage.UpdateLib(&req)
-	if err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
-		return
-	}
-	core.HandleSuccess(c, "")
-}
-
 func DelStorage(c *gin.Context) {
 	var req input.IDParam
 	if err := c.ShouldBindJSON(&req); err != nil {

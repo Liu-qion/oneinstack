@@ -461,9 +461,6 @@ echo "Redis $VERSION 安装完成！"
 var nginx = `
 #!/bin/bash
 
-# 脚本名称：install_nginx.sh
-# 用途：从源码安装 Nginx（适配主流 Linux 系统）
-
 # 检查是否有 root 权限
 if [[ $EUID -ne 0 ]]; then
    echo "请使用 root 权限运行此脚本" 
@@ -541,7 +538,7 @@ chmod -R 755 "$LOG_DIR"
 
 # 配置默认的 nginx.conf
 echo "正在创建 nginx 配置文件..."
-cat > /etc/nginx/nginx.conf <<EOF
+cat > /etc/nginx/nginx.conf << 'EOF'
 user  www-data;
 worker_processes  auto;
 
@@ -571,14 +568,50 @@ EOF
 
 # 配置 Nginx 为系统服务
 echo "正在配置 Nginx 服务..."
-cat > /etc/systemd/system/nginx.service <<EOF
+cat > /etc/systemd/system/nginx.service << 'EOF'
 [Unit]
 Description=NGINX
 After=network.target
 
 [Service]
 ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+PIDFile=/run/nginx.pid
+User=www-data
+Group=www-data
+WorkingDirectory=/usr/local/nginx
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 设置文件夹权限
+echo "正在设置文件夹权限..."
+chown -R www-data:www-data /var/www/html
+chown -R www-data:www-data /var/lib/nginx
+chmod -R 755 /var/www/html
+
+# 设置 Nginx 服务为开机自启
+echo "设置 Nginx 服务为开机自启..."
+systemctl enable nginx
+
+# 启动 Nginx 服务
+echo "启动 Nginx 服务..."
+systemctl start nginx
+
+# 配置 nginx 环境变量
+echo "正在将 nginx 添加到环境变量中..."
+ln -sf /usr/local/nginx/sbin/nginx /usr/bin/nginx
+
+# 清理安装文件
+echo "清理临时安装文件..."
+rm -rf /tmp/nginx*
+
+# 输出安装信息
+echo "Nginx $NGINX_VERSION 安装完成！"
+echo "默认配置文件位于 /etc/nginx/nginx.conf"
+echo "站点配置目录为 /etc/nginx/sites-available 和 /etc/nginx/sites-enabled"
 
 `
 

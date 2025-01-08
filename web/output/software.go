@@ -8,6 +8,7 @@ type Software struct {
 	Type      string       `json:"type"`
 	Status    int          `json:"status"` //0待安装,1安装中,2安装成功,3安装失败
 	Resource  string       `json:"resource"`
+	Log       string       `json:"log"`
 	Installed bool         `json:"installed"`
 	Version   []string     `json:"version"`
 	Tags      string       `json:"tags"`

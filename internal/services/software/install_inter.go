@@ -806,10 +806,14 @@ func (ps InstallOP) executeShScript(scriptName string, args ...string) (string, 
 	go func(bp *input.InstallParams) {
 		fmt.Println("cmd running")
 		err = cmd.Wait()
+		fmt.Println("cmd done")
 		defer func() {
 			if err != nil {
 				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+				tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+				if tx.Error != nil {
+					fmt.Println(tx.Error.Error())
+				}
 				return
 			}
 			tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})

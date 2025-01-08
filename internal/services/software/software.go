@@ -94,6 +94,7 @@ func convertOldToNew(old *models.Software) (*output.Software, error) {
 		Status:    old.Status,
 		Resource:  old.Resource,
 		Installed: old.Installed,
+		Log:       old.Log,
 		Params:    ps,
 	}
 	if old.Version != "" {

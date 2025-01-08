@@ -23,6 +23,7 @@ type QueryParam struct {
 type AddParam struct {
 	ID       int64
 	Addr     string
+	Name     string
 	Port     string
 	Root     string
 	Password string

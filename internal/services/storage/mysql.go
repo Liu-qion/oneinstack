@@ -16,6 +16,7 @@ type MysqlOP struct {
 	Root     string
 	Password string
 	Type     string
+	Lib      string
 	DB       *gorm.DB
 }
 type DbInfo struct {
@@ -28,7 +29,7 @@ type UserPrivilege struct {
 	Host string
 }
 
-func NewMysqlOP(p *models.Storage) *MysqlOP {
+func NewMysqlOP(p *models.Storage, lib string) *MysqlOP {
 	return &MysqlOP{
 		ID:       p.ID,
 		Addr:     p.Addr,
@@ -37,11 +38,12 @@ func NewMysqlOP(p *models.Storage) *MysqlOP {
 		Password: p.Password,
 		Type:     p.Type,
 		DB:       nil,
+		Lib:      lib,
 	}
 }
 
 func (s *MysqlOP) Connet() error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%v)/information_schema?charset=utf8mb4&parseTime=True&loc=Local", s.Root, s.Password, s.Addr, s.Port)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?charset=utf8mb4&parseTime=True&loc=Local", s.Root, s.Password, s.Addr, s.Port, s.Lib)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err

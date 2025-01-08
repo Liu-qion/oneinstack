@@ -9,6 +9,7 @@ import (
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
 	"oneinstack/web/input"
+	"time"
 )
 
 func Add(param *input.AddParam) error {
@@ -28,7 +29,7 @@ func Add(param *input.AddParam) error {
 		Remark:   param.Remark,
 		Type:     param.Type,
 	}
-	op, err := NewStorageOP(m)
+	op, err := NewStorageOP(m, "information_schema")
 	if err != nil {
 		return err
 	}
@@ -84,6 +85,42 @@ func LibList(param *input.QueryParam) (*services.PaginatedResult[models.Library]
 	}
 }
 
+func AddLibs(param *input.AddParam) error {
+	s := &models.Storage{}
+	tx := app.DB().Where("id = ?", param.ID).First(s)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	m := &models.Storage{
+		Addr:     param.Addr,
+		Port:     param.Port,
+		Root:     param.Root,
+		Password: param.Password,
+		Remark:   param.Remark,
+		Type:     param.Type,
+	}
+	op, err := NewStorageOP(m, param.Name)
+	if err != nil {
+		return err
+	}
+	err = op.Connet()
+	if err != nil {
+		return err
+	}
+	lb := &models.Library{
+		PID:        s.ID,
+		Name:       param.Name,
+		User:       param.Root,
+		Password:   param.Password,
+		Capacity:   "",
+		PAddr:      fmt.Sprintf("%s:%v", s.Addr, s.Port),
+		Type:       param.Type,
+		CreateTime: time.Now(),
+	}
+	tx = app.DB().Create(lb)
+	return tx.Error
+}
+
 func Del(param *input.IDParam) error {
 	tx := app.DB().Delete(&models.Storage{}, param.ID)
 	return tx.Error
@@ -95,7 +132,7 @@ func Sync(param *input.IDParam) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	op, err := NewStorageOP(m)
+	op, err := NewStorageOP(m, "information_schema")
 	if err != nil {
 		return err
 	}
@@ -119,7 +156,7 @@ func Update(param *input.AddParam) error {
 	s.Remark = param.Remark
 	s.Remark = param.Remark
 
-	op, err := NewStorageOP(s)
+	op, err := NewStorageOP(s, "information_schema")
 	if err != nil {
 		return err
 	}

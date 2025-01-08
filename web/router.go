@@ -43,7 +43,9 @@ func SetupRouter() *gin.Engine {
 	sys.Use(middleware.AuthMiddleware())
 	{
 		storageg.POST("/addconn", storage.ADDStorage)
+		storageg.POST("/addlib", storage.ADDLib)
 		storageg.POST("/updateconn", storage.UpdateStorage)
+		storageg.POST("/updatelib", storage.UpdateStorage)
 		storageg.GET("/connlist", storage.GetStorage)
 		storageg.GET("/delconn", storage.DelStorage)
 		storageg.POST("/sync", storage.SyncStorage)

@@ -128,6 +128,18 @@ func initSoftware() error {
 			Tags:      "",
 			Params:    "",
 		},
+		{
+			Name:      "phpmyadmin",
+			Key:       "phpmyadmin",
+			Icon:      "",
+			Type:      "",
+			Status:    0,
+			Resource:  "local",
+			Installed: false,
+			Version:   "5.2.1",
+			Tags:      "",
+			Params:    "",
+		},
 	}
 	var soft models.Software
 	result := db.Where("resource = ?", "local").First(&soft)

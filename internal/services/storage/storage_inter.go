@@ -15,10 +15,10 @@ type StorageOPI interface {
 	Sync() error
 }
 
-func NewStorageOP(p *models.Storage) (StorageOPI, error) {
+func NewStorageOP(p *models.Storage, lib string) (StorageOPI, error) {
 	switch p.Type {
 	case "mysql":
-		return NewMysqlOP(p), nil
+		return NewMysqlOP(p, lib), nil
 	case "pg":
 	case "sqlserver":
 	case "redis":

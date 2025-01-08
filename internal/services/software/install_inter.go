@@ -492,6 +492,10 @@ install_dependencies() {
 # 调用安装依赖函数
 install_dependencies
 
+# 创建 nginx 用户和组
+echo "正在创建 nginx 用户和组..."
+id -u nginx &>/dev/null || useradd -r -s /sbin/nologin nginx
+
 # 下载 Nginx 源码
 NGINX_VERSION="1.24.0"
 echo "正在从国内源下载 Nginx $NGINX_VERSION 源码..."
@@ -521,84 +525,133 @@ echo "正在编译 Nginx..."
 make
 make install
 
-# 创建必要的文件夹和设置配置结构
-echo "正在创建配置和日志目录..."
-mkdir -p /etc/nginx/sites-available
-mkdir -p /etc/nginx/sites-enabled
-mkdir -p /var/lib/nginx/{body,proxy,fastcgi,uwsgi,scgi}
-mkdir -p /var/log/nginx
-
-# 检查并设置日志目录权限
-LOG_DIR="/var/log/nginx"
-if [[ ! -d "$LOG_DIR" ]]; then
-    mkdir -p "$LOG_DIR"
-fi
-chown -R www-data:www-data "$LOG_DIR"
-chmod -R 755 "$LOG_DIR"
-
 # 配置默认的 nginx.conf
 echo "正在创建 nginx 配置文件..."
+mkdir -p /etc/nginx/sites-enabled
 cat > /etc/nginx/nginx.conf << 'EOF'
-user  www-data;
-worker_processes  auto;
+#user  nobody;
+worker_processes  1;
 
-error_log  /var/log/nginx/error.log notice;
-pid        /var/run/nginx.pid;
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
 
 events {
     worker_connections  1024;
 }
 
+
 http {
-    include       /etc/nginx/mime.types;
+    include       mime.types;
     include /etc/nginx/sites-enabled/*;
-    include /etc/nginx/conf.d/*.conf;
     default_type  application/octet-stream;
 
-    log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
-                      '\$status \$body_bytes_sent "\$http_referer" '
-                      '"\$http_user_agent" "\$http_x_forwarded_for"';
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
 
-    access_log  /var/log/nginx/access.log  main;
+    #access_log  logs/access.log  main;
 
     sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
     keepalive_timeout  65;
+
+    #gzip  on;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+
+        #error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        #location ~ \.php$ {
+        #    root           html;
+        #    fastcgi_pass   127.0.0.1:9000;
+        #    fastcgi_index  index.php;
+        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        #    include        fastcgi_params;
+        #}
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        #location ~ /\.ht {
+        #    deny  all;
+        #}
+    }
+
+
+    # another virtual host using mix of IP-, name-, and port-based configuration
+    #
+    #server {
+    #    listen       8000;
+    #    listen       somename:8080;
+    #    server_name  somename  alias  another.alias;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
+
+    # HTTPS server
+    #
+    #server {
+    #    listen       443 ssl;
+    #    server_name  localhost;
+
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+
+    #    ssl_session_cache    shared:SSL:1m;
+    #    ssl_session_timeout  5m;
+
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+    #    ssl_prefer_server_ciphers  on;
+
+    #    location / {
+    #        root   html;
+    #        index  index.html index.htm;
+    #    }
+    #}
+
 }
 EOF
 
-# 配置 Nginx 为系统服务
-echo "正在配置 Nginx 服务..."
-cat > /etc/systemd/system/nginx.service << 'EOF'
-[Unit]
-Description=NGINX
-After=network.target
-
-[Service]
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -s reload
-ExecStop=/usr/local/nginx/sbin/nginx -s stop
-PIDFile=/run/nginx.pid
-User=www-data
-Group=www-data
-WorkingDirectory=/usr/local/nginx
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# 设置文件夹权限
-echo "正在设置文件夹权限..."
-chown -R www-data:www-data /var/www/html
-chown -R www-data:www-data /var/lib/nginx
-chmod -R 755 /var/www/html
-
-# 设置 Nginx 服务为开机自启
-echo "设置 Nginx 服务为开机自启..."
-systemctl enable nginx
 
 # 启动 Nginx 服务
 echo "启动 Nginx 服务..."
-systemctl start nginx
+nginx
 
 # 配置 nginx 环境变量
 echo "正在将 nginx 添加到环境变量中..."

@@ -921,7 +921,7 @@ make install
 echo "正在创建 nginx 配置文件..."
 mkdir -p /etc/nginx/sites-enabled
 cat > /etc/nginx/nginx.conf << 'EOF'
-#user  nobody;
+user www-data;
 worker_processes  1;
 
 #error_log  logs/error.log;

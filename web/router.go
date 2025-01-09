@@ -28,7 +28,7 @@ func SetupRouter() *gin.Engine {
 		sys.GET("/info", system.GetSystemInfo)
 		sys.GET("/monitor", system.GetSystemMonitor)
 
-		sys.POST("/remark/list", system.RemarkList)
+		sys.GET("/remark/:id", system.RemarkList)
 		sys.POST("/remark/add", system.AddRemark)
 		sys.POST("/remark/update", system.UpdateRemark)
 		sys.POST("/remark/del", system.DeleteRemark)

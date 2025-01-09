@@ -79,8 +79,8 @@ func LibList(param *input.QueryParam) (*services.PaginatedResult[models.Library]
 		}, nil
 	} else {
 		return services.Paginate[models.Library](app.DB().Where("type = ?", param.Type), &models.Library{}, &input.Page{
-			Page:     param.PageSize,
-			PageSize: param.PageSize,
+			Page:     param.Page.Page,
+			PageSize: param.Page.PageSize,
 		})
 	}
 }

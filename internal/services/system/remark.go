@@ -7,9 +7,9 @@ import (
 	"oneinstack/internal/models"
 )
 
-func RemarkList() (*models.Remark, error) {
+func GetRemarkByID(id int64) (*models.Remark, error) {
 	r := &models.Remark{}
-	tx := app.DB().First(r)
+	tx := app.DB().Where("id = ?", id).First(r)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return nil, tx.Error
 	}

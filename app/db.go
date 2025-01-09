@@ -50,7 +50,19 @@ func createTables() error {
 	if err != nil {
 		return err
 	}
+	err = db.AutoMigrate(&models.Remark{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models.Dictionary{})
+	if err != nil {
+		return err
+	}
 	err = initSoftware()
+	if err != nil {
+		return err
+	}
+	err = initRemark()
 	if err != nil {
 		return err
 	}
@@ -150,6 +162,21 @@ func initSoftware() error {
 		return nil
 	}
 	tx := db.CreateInBatches(softToSeed, len(softToSeed))
+	return tx.Error
+}
+
+func initRemark() error {
+	r := &models.Remark{
+		Content: "",
+	}
+	result := db.First(r)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return result.Error
+	}
+	if r.ID > 0 {
+		return nil
+	}
+	tx := db.Create(r)
 	return tx.Error
 }
 

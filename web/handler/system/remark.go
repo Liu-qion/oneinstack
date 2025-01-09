@@ -6,16 +6,23 @@ import (
 	"oneinstack/core"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services/system"
+	"strconv"
 )
 
 // 列出目录内容
 func RemarkList(c *gin.Context) {
-	list, err := system.RemarkList()
+	param := c.Param("id")
+	atoi, err := strconv.Atoi(param)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
 	}
-	core.HandleSuccess(c, list)
+	r, err := system.GetRemarkByID(int64(atoi))
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, r)
 }
 
 // 创建文件或目录

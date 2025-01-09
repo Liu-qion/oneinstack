@@ -11,18 +11,25 @@ import (
 	"oneinstack/web"
 	"oneinstack/web/input"
 	"os"
+	"os/exec"
+	"strconv"
+	"strings"
+	"syscall"
 )
 
 func main() {
 	//初始化服务
 	server.Start()
-	// 为 "hello" 命令添加参数
-	adduserCmd.Flags().StringP("name", "n", "", "username")
-	adduserCmd.Flags().StringP("pwd", "p", "", "password")
+	resetPwdCmd.Flags().StringP("name", "n", "", "username")
+	resetPwdCmd.Flags().StringP("pwd", "p", "", "password")
+	install.Flags().StringP("soft", "s", "", "nginx,php,phpmyadmin")
 
+	resetUserCmd.Flags().StringP("oldn", "", "", "old username")
+	resetUserCmd.Flags().StringP("newn", "", "", "new username")
 	// 将命令添加到根命令
 	rootCmd.AddCommand(install)
-	rootCmd.AddCommand(adduserCmd)
+	rootCmd.AddCommand(resetPwdCmd)
+	rootCmd.AddCommand(resetUserCmd)
 	rootCmd.AddCommand(serverCmd)
 
 	if err := rootCmd.Execute(); err != nil {
@@ -36,22 +43,113 @@ var rootCmd = &cobra.Command{
 	Short: "oneinstack",
 }
 
+const pidFile = "server.pid" // 存储 PID 的文件路径
+
+// serverStopCmd 定义启动和停止服务的命令
 var serverCmd = &cobra.Command{
 	Use:     "server",
-	Short:   "start http server",
-	Example: " go run main.go server",
+	Short:   "Start, restart, or stop HTTP server",
+	Example: "go run main.go server [start|restart|stop]",
 	Run: func(cmd *cobra.Command, args []string) {
-		r := web.SetupRouter()
-		if err := r.Run("0.0.0.0:" + app.ONE_CONFIG.System.Port); err != nil {
-			log.Fatal("Server run error:", err)
+		if len(args) > 0 {
+			switch args[0] {
+			case "start":
+				startServer()
+			case "restart":
+				restartServer()
+			case "stop":
+				stopServer()
+			default:
+				fmt.Println("Invalid argument. Use 'start', 'restart', or 'stop'.")
+			}
+		} else {
+			fmt.Println("Invalid argument. Use 'start', 'restart', or 'stop'.")
 		}
 	},
 }
 
-var adduserCmd = &cobra.Command{
-	Use:     "addu",
-	Short:   "add user",
-	Example: " go run main.go addu -n abc -p 123 ",
+// startServer 启动服务并记录 PID
+func startServer() {
+	r := web.SetupRouter()
+	fmt.Println("HTTP Server starting...")
+
+	// 创建 PID 文件
+	pid := os.Getpid()
+	err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
+	if err != nil {
+		log.Fatalf("Failed to write PID file: %v", err)
+	}
+
+	// 启动服务
+	if err := r.Run("0.0.0.0:" + app.ONE_CONFIG.System.Port); err != nil {
+		log.Fatal("Server run error:", err)
+	}
+
+	// 删除 PID 文件（在服务正常退出时）
+	os.Remove(pidFile)
+}
+
+// restartServer 重启服务
+func restartServer() {
+	fmt.Println("Restarting HTTP Server...")
+
+	// 调用 stopServer() 停止当前服务
+	stopServer()
+
+	// 获取当前可执行文件路径
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Fatalf("Failed to get executable path: %v", err)
+	}
+
+	// 启动新服务
+	cmd := exec.Command(execPath, "server")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("Failed to restart server: %v", err)
+	}
+
+	fmt.Printf("Server restarted successfully, new PID: %d\n", cmd.Process.Pid)
+}
+
+// stopServer 停止服务
+func stopServer() {
+	fmt.Println("Stopping HTTP Server...")
+
+	// 读取 PID 文件
+	pidData, err := os.ReadFile(pidFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("No running server found.")
+			return
+		}
+		log.Fatalf("Failed to read PID file: %v", err)
+	}
+
+	// 转换 PID 并发送终止信号
+	pid, err := strconv.Atoi(string(pidData))
+	if err != nil {
+		log.Fatalf("Invalid PID in file: %v", err)
+	}
+
+	// 向目标进程发送 SIGTERM 信号
+	err = syscall.Kill(pid, syscall.SIGTERM)
+	if err != nil {
+		log.Fatalf("Failed to stop server: %v", err)
+	}
+
+	// 删除 PID 文件
+	os.Remove(pidFile)
+	fmt.Println("Server stopped successfully.")
+}
+
+var resetPwdCmd = &cobra.Command{
+	Use:     "resetpwd",
+	Short:   "reset user password",
+	Example: " resetpwd -n admin -p 123123 ",
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
@@ -61,7 +159,27 @@ var adduserCmd = &cobra.Command{
 		if name == "" {
 			log.Fatalf("password not found")
 		}
-		err := user.CreateUser(name, pwd, false)
+		err := user.ChangePassword(name, pwd)
+		if err != nil {
+			log.Fatalf("Add user error: %v", err)
+		}
+	},
+}
+
+var resetUserCmd = &cobra.Command{
+	Use:     "resetUsername",
+	Short:   "reset user username",
+	Example: " resetUsername --oldn AHMPotFoxig --newn admin ",
+	Run: func(cmd *cobra.Command, args []string) {
+		on, _ := cmd.Flags().GetString("oldn")
+		if on == "" {
+			log.Fatalf("old username not found")
+		}
+		nn, _ := cmd.Flags().GetString("newn")
+		if nn == "" {
+			log.Fatalf("new username not found")
+		}
+		err := user.ResetUsername(on, nn)
 		if err != nil {
 			log.Fatalf("Add user error: %v", err)
 		}
@@ -71,29 +189,42 @@ var adduserCmd = &cobra.Command{
 var install = &cobra.Command{
 	Use:     "install",
 	Short:   "安装 nginx php phpmyadmin",
-	Example: " run install ",
+	Example: "  install -s php",
 	Run: func(cmd *cobra.Command, args []string) {
-		softToSeed := []*input.InstallParams{
-			{
-				Key:     "webserver",
-				Version: "1.24.0",
-			},
-			{
-				Key:     "php",
-				Version: "7.4",
-			},
-			{
-				Key:     "phpmyadmin",
-				Version: "5.2.1",
-			},
+		soft, _ := cmd.Flags().GetString("soft")
+		if soft == "" {
+			log.Fatalf("soft not found")
 		}
-		for _, v := range softToSeed {
+		ss := strings.Split(soft, ",")
+		ls := []*input.InstallParams{}
+		for _, s := range ss {
+			if s == "nginx" {
+				ls = append(ls, &input.InstallParams{
+					Key:     "nginx",
+					Version: "1.24.0",
+				})
+			}
+			if s == "php" {
+				ls = append(ls, &input.InstallParams{
+					Key:     "php",
+					Version: "7.4",
+				})
+			}
+			if s == "phpmyadmin" {
+				ls = append(ls, &input.InstallParams{
+					Key:     "phpmyadmin",
+					Version: "5.2.1",
+				})
+			}
+		}
+		for _, v := range ls {
 			op, err := software.NewInstallOP(v)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
-			_, err = op.Install()
+			fn, err := op.Install(true)
+			fmt.Println("开始安装：日志位于:", fn)
 			if err != nil {
 				fmt.Println(err.Error())
 				return

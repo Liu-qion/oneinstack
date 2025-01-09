@@ -66,6 +66,11 @@ func ChangePassword(username, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	tx := app.DB().Where("username = ?", username).Update("password", hashed)
+	tx := app.DB().Model(&models.User{}).Where("username = ?", username).Update("password", hashed)
+	return tx.Error
+}
+
+func ResetUsername(username, newUsername string) error {
+	tx := app.DB().Model(&models.User{}).Where("username = ?", username).Update("username", newUsername)
 	return tx.Error
 }

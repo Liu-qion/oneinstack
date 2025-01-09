@@ -13,14 +13,13 @@ func Viper(path ...string) *viper.Viper {
 	var config string
 	// 函数传递的可变参数的第一个值赋值于config
 	config = "config.yaml"
-	fmt.Printf("config的路径为%s\n", config)
-
 	v := viper.New()
 	v.SetConfigFile(config)
 	v.SetConfigType("yaml")
 	err := v.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		fmt.Println(fmt.Errorf("Fatal error config file: %s \n", err))
+		fmt.Println("未找到config.yaml文件,使用默认配置")
 	}
 	v.WatchConfig()
 

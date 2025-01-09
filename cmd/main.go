@@ -79,6 +79,9 @@ func startServer() {
 	}
 
 	// 启动服务
+	if app.ONE_CONFIG.System.Port == "" {
+		app.ONE_CONFIG.System.Port = "8089"
+	}
 	if err := r.Run("0.0.0.0:" + app.ONE_CONFIG.System.Port); err != nil {
 		log.Fatal("Server run error:", err)
 	}

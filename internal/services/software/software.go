@@ -2,12 +2,17 @@ package software
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
 	"oneinstack/web/input"
 	"oneinstack/web/output"
 	"strings"
+	"time"
 )
 
 func RunInstall(p *input.InstallParams) (string, error) {
@@ -89,4 +94,66 @@ func convertOldToNew(old *models.Software) (*output.Software, error) {
 		newSoftware.Version = strings.Split(old.Version, ",")
 	}
 	return newSoftware, nil
+}
+
+func Sync() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		type Data struct {
+			Softwares []*models.Software `json:"soft"`
+		}
+		type Response struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+			Data    *Data  `json:"data"`
+		}
+		client := req.C()
+		var result Response
+		resps, err := client.R().SetSuccessResult(&result).Post(app.ONE_CONFIG.System.Remote + "?key=one123456")
+
+		if err != nil {
+			fmt.Println("同步软件失败:", err.Error())
+			continue
+		}
+
+		if !resps.IsSuccessState() {
+			fmt.Println("同步软件失败")
+			continue
+		}
+		if result.Data != nil && len(result.Data.Softwares) <= 0 {
+			continue
+		}
+		for _, s := range result.Data.Softwares {
+			sf := &models.Software{}
+			tx := app.DB().Where("key =? and version = ?", s.Key, s.Version).First(sf)
+			if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+				fmt.Println("同步软件失败:", tx.Error.Error())
+				continue
+			}
+
+			if sf.Id <= 0 {
+				sf = &models.Software{
+					Name:      s.Name,
+					Key:       s.Key,
+					Icon:      s.Icon,
+					Type:      s.Type,
+					Status:    s.Status,
+					Resource:  "remote",
+					Installed: s.Installed,
+					Log:       s.Log,
+					Version:   s.Version,
+					Tags:      s.Tags,
+					Params:    s.Params,
+					Script:    s.Script,
+				}
+				app.DB().Create(sf)
+			} else {
+				sf.Script = s.Script
+				sf.Resource = "remote"
+				app.DB().Updates(sf)
+			}
+		}
+
+	}
 }

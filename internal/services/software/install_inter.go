@@ -25,7 +25,7 @@ type InstallOP struct {
 
 func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
 	s := &models.Software{}
-	tx := app.DB().Where("key = ?", p.Key).First(s)
+	tx := app.DB().Where("key = ? and version = ?", p.Key, p.Version).First(s)
 	if tx.Error != nil && errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return InstallOP{}, tx.Error
 	}
@@ -103,8 +103,12 @@ func (ps InstallOP) getScript() (string, error) {
 }
 
 func (ps InstallOP) getScriptRemote() (string, error) {
-	//TODO: 获取远程脚本
-	return "", nil
+	s := &models.Software{}
+	tx := app.DB().Where("key = ? and version = ?", ps.BashParams.Key, ps.BashParams.Version).First(s)
+	if tx.Error != nil {
+		return "", tx.Error
+	}
+	return s.Script, nil
 }
 
 func (ps InstallOP) getScriptLocal() (string, error) {
@@ -175,7 +179,7 @@ func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string
 	if err != nil {
 		return "", err
 	}
-	tx := app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Ing, Log: logFileName})
+	tx := app.DB().Where("key = ? and version", ps.BashParams.Key, ps.BashParams.Version).Updates(&models.Software{Status: models.Soft_Status_Ing, Log: logFileName})
 	if tx.Error != nil {
 		fmt.Println(tx.Error.Error())
 	}
@@ -185,9 +189,9 @@ func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string
 		fmt.Println("cmd done" + scriptName)
 		if err != nil {
 			fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+			app.DB().Where("key = ? and version", ps.BashParams.Key, ps.BashParams.Version).Updates(&models.Software{Status: models.Soft_Status_Err})
 		}
-		app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+		app.DB().Where("key = ? and version", ps.BashParams.Key, ps.BashParams.Version).Updates(&models.Software{Status: models.Soft_Status_Suc})
 		return logFileName, nil
 	}
 
@@ -198,10 +202,10 @@ func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string
 		defer func() {
 			if err != nil {
 				fmt.Println("cmd wait err:" + fmt.Sprintf("%v", err))
-				app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Err})
+				app.DB().Where("key = ? and version", ps.BashParams.Key, ps.BashParams.Version).Updates(&models.Software{Status: models.Soft_Status_Err})
 				return
 			}
-			app.DB().Where("key = ?", ps.BashParams.Key).Updates(&models.Software{Status: models.Soft_Status_Suc})
+			app.DB().Where("key = ? and version", ps.BashParams.Key, ps.BashParams.Version).Updates(&models.Software{Status: models.Soft_Status_Suc})
 		}()
 	}(ps.BashParams)
 	return logFileName, nil

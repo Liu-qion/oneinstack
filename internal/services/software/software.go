@@ -2,10 +2,9 @@ package software
 
 import (
 	"encoding/json"
-	"errors"
-	"gorm.io/gorm"
 	"oneinstack/app"
 	"oneinstack/internal/models"
+	"oneinstack/internal/services"
 	"oneinstack/web/input"
 	"oneinstack/web/output"
 	"strings"
@@ -19,7 +18,7 @@ func RunInstall(p *input.InstallParams) (string, error) {
 	return op.Install()
 }
 
-func List(param *input.SoftwareParam) ([]*output.Software, error) {
+func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software], error) {
 	tx := app.DB()
 	if param.Id > 0 {
 		tx = tx.Where("id = ?", param.Id)
@@ -60,21 +59,10 @@ func List(param *input.SoftwareParam) ([]*output.Software, error) {
 		searchTags := "%" + param.Tags + "%"
 		tx = tx.Where("tags LIKE ?", searchTags)
 	}
-	ls := []*models.Software{}
-	find := tx.Find(&ls)
-	if find.Error != nil && !errors.Is(find.Error, gorm.ErrRecordNotFound) {
-		return nil, tx.Error
-	}
-
-	res := []*output.Software{}
-	for _, v := range ls {
-		toNew, err := convertOldToNew(v)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, toNew)
-	}
-	return res, nil
+	return services.Paginate[models.Software](tx, &models.Software{}, &input.Page{
+		Page:     param.Page.Page,
+		PageSize: param.Page.PageSize,
+	})
 }
 
 func convertOldToNew(old *models.Software) (*output.Software, error) {

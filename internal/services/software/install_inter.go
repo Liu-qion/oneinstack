@@ -46,15 +46,18 @@ func (ps InstallOP) Install(sync ...bool) (string, error) {
 		return "", err
 	}
 	if ps.Remote {
-		return ps.executeShScriptRemote(fn, sy)
+		args, err := ps.buildRemoteArgs()
+		if err != nil {
+			return "", err
+		}
+		return ps.executeShScriptRemote(fn, sy, args...)
 	} else {
 		return ps.executeShScriptLocal(fn, sy)
 	}
 }
 
-func (ps InstallOP) executeShScriptRemote(fn string, sy bool) (string, error) {
-
-	return "", nil
+func (ps InstallOP) executeShScriptRemote(fn string, sy bool, args ...string) (string, error) {
+	return ps.executeShScript(fn, sy, args...)
 }
 
 func (ps InstallOP) executeShScriptLocal(fn string, sy bool) (string, error) {
@@ -62,16 +65,7 @@ func (ps InstallOP) executeShScriptLocal(fn string, sy bool) (string, error) {
 	case "webserver":
 		return ps.executeShScript(fn, sy)
 	case "db":
-		if ps.BashParams.Version == "5.5" {
-			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
-		}
-		if ps.BashParams.Version == "5.7" {
-			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
-		}
-		if ps.BashParams.Version == "8.0" {
-			return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
-		}
-		return "", fmt.Errorf("未知的db类型")
+		return ps.executeShScript(fn, sy, "-p", ps.BashParams.Pwd, "-P", "3306")
 	case "redis":
 		if ps.BashParams.Version == "6.2.0" {
 			return ps.executeShScript(fn, sy, "6")
@@ -211,6 +205,11 @@ func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string
 		}()
 	}(ps.BashParams)
 	return logFileName, nil
+}
+
+func (ps InstallOP) buildRemoteArgs() ([]string, error) {
+
+	return nil, nil
 }
 
 // checkIfFileExists 检查文件是否存在。

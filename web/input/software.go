@@ -10,4 +10,5 @@ type SoftwareParam struct {
 	Installed bool   `json:"installed"`
 	Versions  string `json:"versions"`
 	Tags      string `json:"tags"`
+	Page
 }

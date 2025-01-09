@@ -4,33 +4,48 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"os"
 )
 
-// Viper //
-// 优先级: 命令行 > 环境变量 > 默认值
-// Author [SliverHorn](https://github.com/SliverHorn)
 func Viper(path ...string) *viper.Viper {
-	var config string
-	// 函数传递的可变参数的第一个值赋值于config
-	config = "config.yaml"
+	config := "config.yaml"
+
+	// 检查 config.yaml 是否存在
+	if _, err := os.Stat(config); os.IsNotExist(err) {
+		fmt.Println("未找到 config.yaml 文件，创建默认配置文件...")
+		defaultConfig := `system:
+  port: 8089
+`
+		err := os.WriteFile(config, []byte(defaultConfig), 0644)
+		if err != nil {
+			panic(fmt.Errorf("无法创建默认配置文件: %s", err))
+		}
+		fmt.Println("默认配置文件已创建: config.yaml")
+	}
+
 	v := viper.New()
 	v.SetConfigFile(config)
 	v.SetConfigType("yaml")
+
+	// 读取配置文件
 	err := v.ReadInConfig()
 	if err != nil {
-		fmt.Println(fmt.Errorf("Fatal error config file: %s \n", err))
-		fmt.Println("未找到config.yaml文件,使用默认配置")
+		panic(fmt.Errorf("无法读取配置文件: %s", err))
 	}
-	v.WatchConfig()
 
+	// 监控配置文件的变化
+	v.WatchConfig()
 	v.OnConfigChange(func(e fsnotify.Event) {
-		fmt.Println("config file changed:", e.Name)
-		if err = v.Unmarshal(&ONE_CONFIG); err != nil {
-			fmt.Println(err)
+		fmt.Println("配置文件已更改:", e.Name)
+		if err := v.Unmarshal(&ONE_CONFIG); err != nil {
+			fmt.Println("无法解析配置文件:", err)
 		}
 	})
-	if err = v.Unmarshal(&ONE_CONFIG); err != nil {
-		panic(err)
+
+	// 初始化配置
+	if err := v.Unmarshal(&ONE_CONFIG); err != nil {
+		panic(fmt.Errorf("无法解析配置文件: %s", err))
 	}
+
 	return v
 }

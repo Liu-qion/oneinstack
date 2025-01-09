@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"log"
 	"oneinstack/app"
 	"oneinstack/internal/services/software"
@@ -11,8 +12,8 @@ import (
 	"oneinstack/web"
 	"oneinstack/web/input"
 	"os"
-	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -24,11 +25,14 @@ func main() {
 
 	resetUserCmd.Flags().StringP("oldn", "", "", "old username")
 	resetUserCmd.Flags().StringP("newn", "", "", "new username")
+
+	changePortCmd.Flags().StringP("port", "p", "", "New port for the system")
 	// 将命令添加到根命令
 	rootCmd.AddCommand(install)
 	rootCmd.AddCommand(resetPwdCmd)
 	rootCmd.AddCommand(resetUserCmd)
 	rootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(changePortCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -92,28 +96,49 @@ func startServer() {
 
 // restartServer 重启服务
 func restartServer() {
-	fmt.Println("Restarting HTTP Server...")
+	fmt.Println("Checking HTTP Server status...")
 
-	// 调用 stopServer() 停止当前服务
+	// 检查是否存在 PID 文件
+	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
+		fmt.Println("No running server found. Starting a new instance...")
+		startServer()
+		return
+	}
+
+	// 读取 PID 文件内容
+	pidData, err := os.ReadFile(pidFile)
+	if err != nil {
+		log.Fatalf("Failed to read PID file: %v", err)
+	}
+
+	// 转换 PID 为整数
+	pid, err := strconv.Atoi(strings.TrimSpace(string(pidData)))
+	if err != nil {
+		log.Fatalf("Invalid PID in file: %v", err)
+	}
+
+	// 检查进程是否存活
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		fmt.Printf("No process found with PID %d. Starting a new instance...\n", pid)
+		startServer()
+		return
+	}
+
+	// 尝试向进程发送信号，确认进程是否存活
+	err = process.Signal(syscall.Signal(0)) // 发送 0 信号用于检查进程
+	if err != nil {
+		fmt.Printf("No running server found for PID %d. Starting a new instance...\n", pid)
+		startServer()
+		return
+	}
+
+	// 如果进程存活，则停止当前服务
+	fmt.Printf("Server is running with PID %d. Stopping it...\n", pid)
 	stopServer()
 
-	// 获取当前可执行文件路径
-	execPath, err := os.Executable()
-	if err != nil {
-		log.Fatalf("Failed to get executable path: %v", err)
-	}
-
 	// 启动新服务
-	cmd := exec.Command(execPath, "server")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
-	if err := cmd.Start(); err != nil {
-		log.Fatalf("Failed to restart server: %v", err)
-	}
-
-	fmt.Printf("Server restarted successfully, new PID: %d\n", cmd.Process.Pid)
+	startServer()
 }
 
 // stopServer 停止服务
@@ -218,5 +243,43 @@ var install = &cobra.Command{
 			}
 		}
 
+	},
+}
+
+var changePortCmd = &cobra.Command{
+	Use:     "changeport",
+	Short:   "修改端口,修改端口后,需要执行 server restart 才能生效",
+	Example: "changeport -p 8080",
+	Run: func(cmd *cobra.Command, args []string) {
+		port, _ := cmd.Flags().GetString("port")
+		if port == "" {
+			log.Fatalf("Port not provided")
+		}
+
+		// 检查配置文件是否存在
+		configFile := "config.yaml"
+		if _, err := os.Stat(configFile); os.IsNotExist(err) {
+			log.Fatalf("Configuration file %s not found", configFile)
+		}
+
+		// 使用 viper 读取和更新配置
+		v := viper.New()
+		v.SetConfigFile(configFile)
+		v.SetConfigType("yaml")
+
+		// 读取配置文件
+		err := v.ReadInConfig()
+		if err != nil {
+			log.Fatalf("Failed to read configuration file: %v", err)
+		}
+
+		// 更新端口配置
+		v.Set("system.port", port)
+
+		// 保存更新到配置文件
+		err = v.WriteConfig()
+		if err != nil {
+			log.Fatalf("Failed to update configuration file: %v", err)
+		}
 	},
 }

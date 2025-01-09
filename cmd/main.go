@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
 )
 
@@ -22,7 +21,6 @@ func main() {
 	server.Start()
 	resetPwdCmd.Flags().StringP("name", "n", "", "username")
 	resetPwdCmd.Flags().StringP("pwd", "p", "", "password")
-	install.Flags().StringP("soft", "s", "", "nginx,php,phpmyadmin")
 
 	resetUserCmd.Flags().StringP("oldn", "", "", "old username")
 	resetUserCmd.Flags().StringP("newn", "", "", "new username")
@@ -188,36 +186,23 @@ var resetUserCmd = &cobra.Command{
 
 var install = &cobra.Command{
 	Use:     "install",
-	Short:   "安装 nginx php phpmyadmin",
+	Short:   "安装 php nginx  phpmyadmin",
 	Example: "  install -s php",
 	Run: func(cmd *cobra.Command, args []string) {
-		soft, _ := cmd.Flags().GetString("soft")
-		if soft == "" {
-			log.Fatalf("soft not found")
-		}
-		ss := strings.Split(soft, ",")
-		ls := []*input.InstallParams{}
-		for _, s := range ss {
-			if s == "nginx" {
-				ls = append(ls, &input.InstallParams{
-					Key:     "nginx",
-					Version: "1.24.0",
-				})
-			}
-			if s == "php" {
-				ls = append(ls, &input.InstallParams{
-					Key:     "php",
-					Version: "7.4",
-				})
-			}
-			if s == "phpmyadmin" {
-				ls = append(ls, &input.InstallParams{
-					Key:     "phpmyadmin",
-					Version: "5.2.1",
-				})
-			}
+		ls := []*input.InstallParams{
+			&input.InstallParams{
+				Key:     "php",
+				Version: "7.4",
+			}, &input.InstallParams{
+				Key:     "webserver",
+				Version: "1.24.0",
+			}, &input.InstallParams{
+				Key:     "phpmyadmin",
+				Version: "5.2.1",
+			},
 		}
 		for _, v := range ls {
+			fmt.Println("开始安装" + v.Key)
 			op, err := software.NewInstallOP(v)
 			if err != nil {
 				fmt.Println(err.Error())
@@ -226,8 +211,7 @@ var install = &cobra.Command{
 			fn, err := op.Install(true)
 			fmt.Println("开始安装：日志位于:", fn)
 			if err != nil {
-				fmt.Println(err.Error())
-				return
+				fmt.Println("安装失败" + err.Error())
 			}
 		}
 

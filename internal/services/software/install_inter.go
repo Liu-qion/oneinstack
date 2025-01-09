@@ -130,7 +130,7 @@ func (ps InstallOP) executeShScript(scriptName string, sync bool, args ...string
 	cmdArgs := append([]string{scriptName}, args...)
 	cmd := exec.Command("bash", cmdArgs...)
 
-	logFileName := "install_" + time.Now().Format("2006-01-02_15-04-05") + ".log"
+	logFileName := "install_" + scriptName + time.Now().Format("2006-01-02_15-04-05") + ".log"
 	logFile, err := os.Create(logFileName)
 	if err != nil {
 		return "", fmt.Errorf("无法创建日志文件: %v", err)

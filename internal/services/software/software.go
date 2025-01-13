@@ -111,7 +111,7 @@ func Sync() {
 		}
 		client := req.C()
 		var result Response
-		url := app.ONE_CONFIG.System.Remote + "?key=one123456"
+		url := app.ONE_CONFIG.System.Remote + "?key=onesync"
 		if app.ONE_CONFIG.System.Remote == "" {
 			url = "http://localhost:8189/v1/sys/update"
 		}

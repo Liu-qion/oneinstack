@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/imroc/req/v3"
-	"gorm.io/gorm"
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
@@ -13,6 +11,9 @@ import (
 	"oneinstack/web/output"
 	"strings"
 	"time"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 func RunInstall(p *input.InstallParams) (string, error) {
@@ -110,7 +111,11 @@ func Sync() {
 		}
 		client := req.C()
 		var result Response
-		resps, err := client.R().SetSuccessResult(&result).Post(app.ONE_CONFIG.System.Remote + "?key=one123456")
+		url := app.ONE_CONFIG.System.Remote + "?key=one123456"
+		if app.ONE_CONFIG.System.Remote == "" {
+			url = "http://localhost:8189/v1/sys/update"
+		}
+		resps, err := client.R().SetSuccessResult(&result).Post(url)
 
 		if err != nil {
 			fmt.Println("同步软件失败:", err.Error())

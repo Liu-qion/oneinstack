@@ -17,3 +17,11 @@ cmd/oneinstack
 *.log
 
 .idea/
+
+*.sh
+
+server.pid
+
+oneinstack.iml
+
+cmd

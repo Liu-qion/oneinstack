@@ -3,7 +3,6 @@ package software
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/utils"
@@ -12,6 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type InstallOPI interface {
@@ -29,7 +30,7 @@ func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
 	if tx.Error != nil && errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return InstallOP{}, tx.Error
 	}
-	return InstallOP{BashParams: p, Remote: s.Type != "local"}, nil
+	return InstallOP{BashParams: p, Remote: s.Resource != "local"}, nil
 }
 
 func (ps InstallOP) Install(sync ...bool) (string, error) {

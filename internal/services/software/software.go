@@ -3,12 +3,17 @@ package software
 import (
 	"encoding/json"
 	"errors"
-	"gorm.io/gorm"
+	"fmt"
 	"oneinstack/app"
 	"oneinstack/internal/models"
+	"oneinstack/internal/services"
 	"oneinstack/web/input"
 	"oneinstack/web/output"
 	"strings"
+	"time"
+
+	"github.com/imroc/req/v3"
+	"gorm.io/gorm"
 )
 
 func RunInstall(p *input.InstallParams) (string, error) {
@@ -19,7 +24,7 @@ func RunInstall(p *input.InstallParams) (string, error) {
 	return op.Install()
 }
 
-func List(param *input.SoftwareParam) ([]*output.Software, error) {
+func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software], error) {
 	tx := app.DB()
 	if param.Id > 0 {
 		tx = tx.Where("id = ?", param.Id)
@@ -60,21 +65,10 @@ func List(param *input.SoftwareParam) ([]*output.Software, error) {
 		searchTags := "%" + param.Tags + "%"
 		tx = tx.Where("tags LIKE ?", searchTags)
 	}
-	ls := []*models.Software{}
-	find := tx.Find(&ls)
-	if find.Error != nil && !errors.Is(find.Error, gorm.ErrRecordNotFound) {
-		return nil, tx.Error
-	}
-
-	res := []*output.Software{}
-	for _, v := range ls {
-		toNew, err := convertOldToNew(v)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, toNew)
-	}
-	return res, nil
+	return services.Paginate[models.Software](tx, &models.Software{}, &input.Page{
+		Page:     param.Page.Page,
+		PageSize: param.Page.PageSize,
+	})
 }
 
 func convertOldToNew(old *models.Software) (*output.Software, error) {
@@ -101,4 +95,70 @@ func convertOldToNew(old *models.Software) (*output.Software, error) {
 		newSoftware.Version = strings.Split(old.Version, ",")
 	}
 	return newSoftware, nil
+}
+
+func Sync() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		type Data struct {
+			Softwares []*models.Software `json:"soft"`
+		}
+		type Response struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+			Data    *Data  `json:"data"`
+		}
+		client := req.C()
+		var result Response
+		url := app.ONE_CONFIG.System.Remote + "?key=onesync"
+		if app.ONE_CONFIG.System.Remote == "" {
+			url = "http://localhost:8189/v1/sys/update"
+		}
+		resps, err := client.R().SetSuccessResult(&result).Post(url)
+
+		if err != nil {
+			fmt.Println("同步软件失败:", err.Error())
+			continue
+		}
+
+		if !resps.IsSuccessState() {
+			fmt.Println("同步软件失败")
+			continue
+		}
+		if result.Data != nil && len(result.Data.Softwares) <= 0 {
+			continue
+		}
+		for _, s := range result.Data.Softwares {
+			sf := &models.Software{}
+			tx := app.DB().Where("key =? and version = ?", s.Key, s.Version).First(sf)
+			if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+				fmt.Println("同步软件失败:", tx.Error.Error())
+				continue
+			}
+
+			if sf.Id <= 0 {
+				sf = &models.Software{
+					Name:      s.Name,
+					Key:       s.Key,
+					Icon:      s.Icon,
+					Type:      s.Type,
+					Status:    s.Status,
+					Resource:  "remote",
+					Installed: s.Installed,
+					Log:       s.Log,
+					Version:   s.Version,
+					Tags:      s.Tags,
+					Params:    s.Params,
+					Script:    s.Script,
+				}
+				app.DB().Create(sf)
+			} else {
+				sf.Script = s.Script
+				sf.Resource = "remote"
+				app.DB().Updates(sf)
+			}
+		}
+
+	}
 }

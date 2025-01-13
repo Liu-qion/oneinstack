@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"oneinstack/app"
+	"oneinstack/internal/services/software"
 	"oneinstack/internal/services/system"
 )
 
@@ -13,4 +14,5 @@ func Start() {
 		log.Fatal("InitDB error:", err)
 	}
 	go system.SystemMonitor()
+	go software.Sync()
 }

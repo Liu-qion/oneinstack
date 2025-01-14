@@ -1175,7 +1175,7 @@ configure_nginx
 
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
 echo "phpMyAdmin 已成功安装！您可以通过以下地址访问："
-echo "http://$IP_ADDRESS/phpmyadmin"
+echo "http://$IP_ADDRESS:8080/phpmyadmin"
 
 `
 

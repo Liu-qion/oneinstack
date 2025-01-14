@@ -98,7 +98,7 @@ func convertOldToNew(old *models.Software) (*output.Software, error) {
 }
 
 func Sync() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(5 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
 		type Data struct {

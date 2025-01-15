@@ -126,9 +126,7 @@ func GetSystemInfo() (*output.SystemInfo, error) {
 	}
 	// CPU Usage
 	cpuPercent, _ := cpu.Percent(time.Second, false)
-	if err != nil {
-		return nil, err
-	}
+
 	// Memory Info
 	vmem, err := mem.VirtualMemory()
 	if err != nil {

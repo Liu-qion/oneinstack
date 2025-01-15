@@ -2,11 +2,13 @@ package storage
 
 import (
 	"fmt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"log"
 	"math"
 	"oneinstack/app"
 	"oneinstack/internal/models"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type MysqlOP struct {
@@ -123,4 +125,41 @@ func ConvertBytes(bytes float64) string {
 		unitIndex = len(units) - 1
 	}
 	return fmt.Sprintf("%.2f %s", bytes/math.Pow(1024, float64(unitIndex)), units[unitIndex])
+}
+
+func (s *MysqlOP) CreateLibrary(lb *models.Library) error {
+	lib := s.Lib
+	s.Lib = ""
+	err := s.Connet()
+	if err != nil {
+		return err
+	}
+	sqlDB, err := s.DB.DB()
+	if err != nil {
+		return err
+	}
+	_, err = sqlDB.Exec("CREATE DATABASE IF NOT EXISTS " + lib)
+	if err != nil {
+		return err
+	}
+	// 创建新用户并赋予权限
+	_, err = sqlDB.Exec(fmt.Sprintf("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'", lb.User, lb.Password))
+	if err != nil {
+		return err
+	}
+
+	// 赋予用户对新数据库的所有权限
+	_, err = sqlDB.Exec(fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost'", lib, lb.User))
+	if err != nil {
+		return err
+	}
+
+	// 刷新权限
+	_, err = sqlDB.Exec("FLUSH PRIVILEGES")
+	if err != nil {
+		return err
+	}
+
+	log.Println("Database, user, and permissions created successfully.")
+	return nil
 }

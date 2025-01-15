@@ -1,11 +1,12 @@
 package storage
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/services/storage"
 	"oneinstack/web/input"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ADDStorage(c *gin.Context) {
@@ -33,12 +34,7 @@ func ADDLib(c *gin.Context) {
 		core.HandleError(c, http.StatusUnauthorized, core.ErrBadRequest, err)
 		return
 	}
-	err := req.Validate()
-	if err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
-		return
-	}
-	err = storage.AddLibs(&req)
+	err := storage.AddLibs(&req)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

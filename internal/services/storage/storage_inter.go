@@ -13,6 +13,7 @@ type StorageOP struct {
 type StorageOPI interface {
 	Connet() error
 	Sync() error
+	CreateLibrary(lb *models.Library) error
 }
 
 func NewStorageOP(p *models.Storage, lib string) (StorageOPI, error) {

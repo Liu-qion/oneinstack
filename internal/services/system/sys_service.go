@@ -164,29 +164,15 @@ func GetSystemInfo() (*output.SystemInfo, error) {
 	return sysinfo, nil
 }
 
-type NetStats struct {
-	Name        string
-	BytesSent   uint64
-	BytesRecv   uint64
-	PacketsSent uint64
-	PacketsRecv uint64
-}
-
-type NetSpeed struct {
-	Name     string
-	SentRate float64 // bytes per second
-	RecvRate float64 // bytes per second
-}
-
-func getNetIOCounters() ([]*NetStats, error) {
+func getNetIOCounters() ([]*output.NetStats, error) {
 	ioCounters, err := net.IOCounters(true)
 	if err != nil {
 		return nil, err
 	}
 
-	var stats []*NetStats
+	var stats []*output.NetStats
 	for _, v := range ioCounters {
-		stats = append(stats, &NetStats{
+		stats = append(stats, &output.NetStats{
 			Name:        v.Name,
 			BytesSent:   v.BytesSent,
 			BytesRecv:   v.BytesRecv,
@@ -197,12 +183,12 @@ func getNetIOCounters() ([]*NetStats, error) {
 	return stats, nil
 }
 
-func calculateSpeed(oldStats, newStats []*NetStats, duration time.Duration) ([]*NetSpeed, *NetSpeed, error) {
-	var allSpeed NetSpeed
+func calculateSpeed(oldStats, newStats []*output.NetStats, duration time.Duration) ([]*output.NetSpeed, *output.NetSpeed, error) {
+	var allSpeed output.NetSpeed
 	allSpeed.SentRate = 0.0
 	allSpeed.RecvRate = 0.0
 
-	speeds := make([]*NetSpeed, len(oldStats))
+	speeds := make([]*output.NetSpeed, len(oldStats))
 	for i, oldStat := range oldStats {
 		newStat := newStats[i]
 		if oldStat.Name != newStat.Name {
@@ -215,7 +201,7 @@ func calculateSpeed(oldStats, newStats []*NetStats, duration time.Duration) ([]*
 		allSpeed.SentRate += sentRate
 		allSpeed.RecvRate += recvRate
 
-		speeds[i] = &NetSpeed{
+		speeds[i] = &output.NetSpeed{
 			Name:     oldStat.Name,
 			SentRate: sentRate,
 			RecvRate: recvRate,
@@ -265,7 +251,7 @@ func calculateDiskIOSpeed(oldStats, newStats []*output.DiskIOStats, duration tim
 				readOpsPerSec := float64(newStat.ReadCount-oldStat.ReadCount) / duration.Seconds()
 				writeOpsPerSec := float64(newStat.WriteCount-oldStat.WriteCount) / duration.Seconds()
 
-				ioTimeDiff := float64(newStat.IoTime-oldStat.IoTime) / 1000 // convert to ms
+				ioTimeDiff := float64(newStat.IoTime - oldStat.IoTime) // convert to ms
 				ioOpsDiff := float64((newStat.ReadCount + newStat.WriteCount) - (oldStat.ReadCount + oldStat.WriteCount))
 				avgIoLatency := 0.0
 				if ioOpsDiff > 0 {

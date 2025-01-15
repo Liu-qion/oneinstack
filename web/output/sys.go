@@ -45,3 +45,16 @@ type DiskIOSpeed struct {
 	WriteOpsPerSec float64
 	AvgIoLatency   float64 // milliseconds
 }
+type NetStats struct {
+	Name        string
+	BytesSent   uint64
+	BytesRecv   uint64
+	PacketsSent uint64
+	PacketsRecv uint64
+}
+
+type NetSpeed struct {
+	Name     string
+	SentRate float64 // bytes per second
+	RecvRate float64 // bytes per second
+}

@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
 	"oneinstack/web/input"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func Add(param *input.AddParam) error {
@@ -92,18 +93,14 @@ func AddLibs(param *input.AddParam) error {
 		return tx.Error
 	}
 	m := &models.Storage{
-		Addr:     param.Addr,
-		Port:     param.Port,
-		Root:     param.Root,
-		Password: param.Password,
-		Remark:   param.Remark,
-		Type:     param.Type,
+		Addr:     s.Addr,
+		Port:     s.Port,
+		Root:     s.Root,
+		Password: s.Password,
+		Remark:   s.Remark,
+		Type:     s.Type,
 	}
 	op, err := NewStorageOP(m, param.Name)
-	if err != nil {
-		return err
-	}
-	err = op.Connet()
 	if err != nil {
 		return err
 	}
@@ -114,10 +111,16 @@ func AddLibs(param *input.AddParam) error {
 		Password:   param.Password,
 		Capacity:   "",
 		PAddr:      fmt.Sprintf("%s:%v", s.Addr, s.Port),
-		Type:       param.Type,
+		Type:       s.Type,
 		CreateTime: time.Now(),
 	}
+	err = op.CreateLibrary(lb)
+	if err != nil {
+		return err
+	}
+
 	tx = app.DB().Create(lb)
+
 	return tx.Error
 }
 

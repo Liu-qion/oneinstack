@@ -3,12 +3,13 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"math"
 	"oneinstack/internal/models"
 	"strconv"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type RedisOP struct {
@@ -214,4 +215,8 @@ func (s *RedisOP) GetPaginatedKeyInfo(ctx context.Context, db int, pattern strin
 		PageSize:   pageSize,
 		TotalPages: int(math.Ceil(float64(totalKeys) / float64(pageSize))),
 	}, nil
+}
+
+func (s *RedisOP) CreateLibrary(lb *models.Library) error {
+	return nil
 }

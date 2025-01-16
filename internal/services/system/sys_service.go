@@ -2,6 +2,8 @@ package system
 
 import (
 	"fmt"
+	"oneinstack/app"
+	"oneinstack/internal/models"
 	"oneinstack/web/output"
 	"time"
 
@@ -284,4 +286,24 @@ func calculateDiskIOSpeed(oldStats, newStats []*output.DiskIOStats, duration tim
 	}
 
 	return speeds, &allSpeed, nil
+}
+
+func GetLibCount() (int64, error) {
+	lib := models.Library{}
+	var count int64
+	tx := app.DB().Model(&lib).Count(&count)
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	return count, nil
+}
+
+func GetWebSiteCount() (int64, error) {
+	lib := models.Website{}
+	var count int64
+	tx := app.DB().Model(&lib).Count(&count)
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	return count, nil
 }

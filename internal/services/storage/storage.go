@@ -86,7 +86,7 @@ func LibList(param *input.QueryParam) (*services.PaginatedResult[models.Library]
 	}
 }
 
-func AddLibs(param *input.AddParam) error {
+func AddLibs(param *input.LibParam) error {
 	s := &models.Storage{}
 	tx := app.DB().Where("id = ?", param.ID).First(s)
 	if tx.Error != nil {

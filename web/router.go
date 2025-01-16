@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/gin-gonic/gin"
 	"oneinstack/web/handler/ftp"
 	"oneinstack/web/handler/software"
 	"oneinstack/web/handler/storage"
@@ -9,6 +8,8 @@ import (
 	"oneinstack/web/handler/user"
 	"oneinstack/web/handler/website"
 	"oneinstack/web/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
@@ -27,6 +28,8 @@ func SetupRouter() *gin.Engine {
 	{
 		sys.GET("/info", system.GetSystemInfo)
 		sys.GET("/monitor", system.GetSystemMonitor)
+		sys.GET("/libcount", system.GetLibCount)
+		sys.GET("/websitecount", system.GetWebSiteCount)
 
 		sys.GET("/remark/:id", system.RemarkList)
 		sys.POST("/remark/add", system.AddRemark)

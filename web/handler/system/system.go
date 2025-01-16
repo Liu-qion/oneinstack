@@ -25,3 +25,21 @@ func GetSystemMonitor(c *gin.Context) {
 	}
 	core.HandleSuccess(c, monitor)
 }
+
+func GetLibCount(c *gin.Context) {
+	count, err := system.GetLibCount()
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, count)
+}
+
+func GetWebSiteCount(c *gin.Context) {
+	count, err := system.GetWebSiteCount()
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, count)
+}

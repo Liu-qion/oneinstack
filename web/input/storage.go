@@ -31,6 +31,14 @@ type AddParam struct {
 	Type     string
 }
 
+type LibParam struct {
+	ID       int64
+	Name     string
+	Root     string
+	Password string
+	Remark   string
+}
+
 // Validate checks if the fields of AddParam are valid and returns an error if any field is invalid.
 func (p *AddParam) Validate() error {
 	if err := validateAddr(p.Addr); err != nil {

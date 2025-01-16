@@ -5,11 +5,6 @@ import (
 	"oneinstack/internal/models"
 )
 
-type StorageOP struct {
-	DB   StorageOPI
-	Type string
-}
-
 type StorageOPI interface {
 	Connet() error
 	Sync() error
@@ -27,12 +22,4 @@ func NewStorageOP(p *models.Storage, lib string) (StorageOPI, error) {
 	case "mongo":
 	}
 	return nil, fmt.Errorf("未知的存储服务")
-}
-
-func (s StorageOP) Connet() error {
-	return s.DB.Connet()
-}
-
-func (s StorageOP) Sync() error {
-	return s.DB.Sync()
 }

@@ -25,11 +25,11 @@ func ADDStorage(c *gin.Context) {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
 	}
-	core.HandleSuccess(c, "")
+	core.HandleSuccess(c, "成功")
 }
 
 func ADDLib(c *gin.Context) {
-	var req input.AddParam
+	var req input.LibParam
 	if err := c.ShouldBindJSON(&req); err != nil {
 		core.HandleError(c, http.StatusUnauthorized, core.ErrBadRequest, err)
 		return
@@ -39,7 +39,7 @@ func ADDLib(c *gin.Context) {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
 	}
-	core.HandleSuccess(c, "")
+	core.HandleSuccess(c, "成功")
 }
 
 func GetStorage(c *gin.Context) {
@@ -68,7 +68,7 @@ func UpdateStorage(c *gin.Context) {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
 	}
-	core.HandleSuccess(c, "")
+	core.HandleSuccess(c, "成功")
 }
 
 func DelStorage(c *gin.Context) {

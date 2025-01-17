@@ -22,7 +22,7 @@ func ListDirectory(c *gin.Context) {
 		Path string `json:"path" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		core.HandleError(c, http.StatusInternalServerError, fmt.Errorf("参数错误"), nil)
 		return
 	}
 	absPath := filepath.Join(filepath.Clean(input.Path))
@@ -61,7 +61,7 @@ func CreateFileOrDir(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		core.HandleError(c, http.StatusInternalServerError, fmt.Errorf("参数错误"), nil)
 		return
 	}
 
@@ -144,7 +144,7 @@ func DeleteFileOrDir(c *gin.Context) {
 		Path string `json:"path" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		core.HandleError(c, http.StatusInternalServerError, fmt.Errorf("参数错误"), nil)
 		return
 	}
 	absPath := filepath.Join(filepath.Clean(input.Path))

@@ -8,8 +8,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 )
 
 // DecompressTarGz 跨平台解压 tar.gz 文件
@@ -165,4 +167,20 @@ func FormatBytes(bytes int64) string {
 
 	// 格式化输出，保留两位小数
 	return fmt.Sprintf("%.2f%s", value, units[unitIndex])
+}
+
+func LookupUser(uid int) string {
+	user, err := user.LookupId(strconv.Itoa(uid))
+	if err != nil {
+		return fmt.Sprintf("无法查找用户: %v", err)
+	}
+	return user.Name
+}
+
+func LookupGroup(gid int) string {
+	group, err := user.LookupGroupId(strconv.Itoa(gid))
+	if err != nil {
+		return fmt.Sprintf("无法查找组: %v", err)
+	}
+	return group.Name
 }

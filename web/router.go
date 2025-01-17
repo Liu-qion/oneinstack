@@ -64,6 +64,7 @@ func SetupRouter() *gin.Engine {
 		ftpg.POST("/upload", ftp.UploadFile)
 		ftpg.POST("/download", ftp.DownloadFile)
 		ftpg.POST("/delete", ftp.DeleteFileOrDir)
+		ftpg.POST("/modify", ftp.ModifyFileOrDirAttributes)
 	}
 
 	softg := g.Group("/soft")

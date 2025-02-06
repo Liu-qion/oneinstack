@@ -34,6 +34,7 @@ func NewInstallOP(p *input.InstallParams) (InstallOP, error) {
 }
 
 func (ps InstallOP) Install(sync ...bool) (string, error) {
+	defer ps.updateSoft()
 	sy := false
 	if len(sync) > 0 {
 		sy = sync[0]
@@ -55,6 +56,34 @@ func (ps InstallOP) Install(sync ...bool) (string, error) {
 	} else {
 		return ps.executeShScriptLocal(fn, sy)
 	}
+}
+
+func (ps InstallOP) updateSoft() error {
+	s := &models.Software{}
+	tx := app.DB().Where("key = ? and version = ?", ps.BashParams.Key, ps.BashParams.Version).First(s)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	s.InstallTime = time.Now()
+	switch s.Key {
+	case "webserver":
+		s.HttpPort = "80"
+		s.HttpPort = "443"
+	case "db":
+		s.HttpPort = ps.BashParams.Port
+		s.RootPwd = ps.BashParams.Pwd
+	case "redis":
+		s.HttpPort = ps.BashParams.Port
+		s.RootPwd = ps.BashParams.Pwd
+	case "php":
+	case "java":
+	case "phpmyadmin":
+		s.HttpPort = "8080"
+		s.UrlPath = "http://$IP_ADDRESS:8080/phpmyadmin"
+	default:
+		return fmt.Errorf("未知的类型")
+	}
+	return nil
 }
 
 func (ps InstallOP) executeShScriptRemote(fn string, sy bool, args ...string) (string, error) {

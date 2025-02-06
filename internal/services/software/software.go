@@ -52,8 +52,20 @@ func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software
 		tx = tx.Where("resource = ?", param.Resource)
 	}
 
-	if param.Installed {
-		tx = tx.Where("installed = ?", param.Installed)
+	if param.IsUpdate != nil {
+		isi := 0
+		if *param.IsUpdate {
+			isi = 1
+		}
+		tx = tx.Where("is_update = ?", isi)
+	}
+
+	if param.Installed != nil {
+		isi := 0
+		if *param.Installed {
+			isi = 1
+		}
+		tx = tx.Where("installed = ?", isi)
 	}
 
 	if param.Versions != "" {
@@ -138,6 +150,15 @@ func Sync() {
 			}
 
 			if sf.Id <= 0 {
+				osf := &models.Software{}
+				tx := app.DB().Where("key =? and installed = 1", s.Key).First(osf)
+				if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+					fmt.Println("同步软件失败状态更新:", tx.Error.Error())
+				}
+				if osf.Id > 0 {
+					osf.IsUpdate = true
+					app.DB().Updates(osf)
+				}
 				sf = &models.Software{
 					Name:      s.Name,
 					Key:       s.Key,

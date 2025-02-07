@@ -9,6 +9,7 @@ import (
 	"oneinstack/internal/services"
 	"oneinstack/web/input"
 	"oneinstack/web/output"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -22,6 +23,63 @@ func RunInstall(p *input.InstallParams) (string, error) {
 		return "", err
 	}
 	return op.Install()
+}
+
+func Exploration(param *input.SoftwareParam) bool {
+	sf := &models.Software{}
+	tx := app.DB().Model(&models.Software{}).Where("id = ?", param.Id).First(sf)
+	if tx.Error != nil {
+		return false
+	}
+	if strings.Contains(strings.ToLower(sf.Name), "mysql") {
+		return checkMySQL(sf)
+	}
+	if strings.Contains(strings.ToLower(sf.Name), "nginx") {
+		return checkNginx(sf)
+	}
+	if strings.Contains(strings.ToLower(sf.Name), "phpmyadmin") {
+		return checkPhpMyAdmin(sf)
+	}
+	if strings.Contains(strings.ToLower(sf.Name), "redis") {
+		return checkRedis(sf)
+	}
+	return false
+}
+
+func checkMySQL(sf *models.Software) bool {
+	cmd := exec.Command("sh", "-c", "ps -ef | grep -w mysqld | grep -v grep >/dev/null")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func checkNginx(sf *models.Software) bool {
+	cmd := exec.Command("sh", "-c", "ps -ef | grep -w nginx | grep -v grep >/dev/null")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func checkPhpMyAdmin(sf *models.Software) bool {
+	cmd := exec.Command("sh", "-c", "ps -ef | grep -w phpmyadmin | grep -v grep >/dev/null")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func checkRedis(sf *models.Software) bool {
+	cmd := exec.Command("sh", "-c", "ps -ef | grep -w redis-server | grep -v grep >/dev/null")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software], error) {

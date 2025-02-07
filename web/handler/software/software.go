@@ -2,12 +2,13 @@ package software
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/services/software"
 	"oneinstack/utils"
 	"oneinstack/web/input"
+
+	"github.com/gin-gonic/gin"
 )
 
 func RunInstallation(c *gin.Context) {
@@ -51,4 +52,14 @@ func GetLogContent(c *gin.Context) {
 	core.HandleSuccess(c, gin.H{
 		"logs": install,
 	})
+}
+
+func Exploration(c *gin.Context) {
+	var req input.SoftwareParam
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.HandleError(c, http.StatusUnauthorized, core.ErrBadRequest, err)
+		return
+	}
+	ok := software.Exploration(&req)
+	core.HandleSuccess(c, ok)
 }

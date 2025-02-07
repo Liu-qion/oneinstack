@@ -1,15 +1,22 @@
 package website
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services/website"
+	"oneinstack/web/input"
+
+	"github.com/gin-gonic/gin"
 )
 
 func List(c *gin.Context) {
-	list, err := website.List()
+	input := &input.WebsiteQueryParam{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	list, err := website.List(input)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

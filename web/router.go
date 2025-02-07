@@ -73,7 +73,7 @@ func SetupRouter() *gin.Engine {
 		softg.POST("/list", software.GetSoftware)
 		softg.GET("/getlog", software.GetLogContent)
 		softg.POST("/install", software.RunInstallation)
-
+		softg.POST("/exploration", software.Exploration)
 	}
 
 	websiteg := g.Group("/website")

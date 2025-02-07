@@ -4,12 +4,25 @@ import (
 	"fmt"
 	"oneinstack/app"
 	"oneinstack/internal/models"
+	"oneinstack/internal/services"
+	"oneinstack/web/input"
 )
 
-func List() ([]*models.Website, error) {
-	ls := []*models.Website{}
-	tx := app.DB().Find(&ls)
-	return ls, tx.Error
+func List(param *input.WebsiteQueryParam) (*services.PaginatedResult[models.Website], error) {
+	tx := app.DB()
+	if param.Name != "" {
+		tx = tx.Where("name like ?", "%"+param.Name+"%")
+	}
+	if param.Domain != "" {
+		tx = tx.Where("domain like ?", "%"+param.Domain+"%")
+	}
+	if param.Type != "" {
+		tx = tx.Where("type = ?", param.Type)
+	}
+	return services.Paginate[models.Website](tx, &models.Website{}, &input.Page{
+		Page:     param.Page.Page,
+		PageSize: param.Page.PageSize,
+	})
 }
 
 func Add(param *models.Website) error {

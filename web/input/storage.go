@@ -32,6 +32,7 @@ type AddParam struct {
 }
 
 type LibParam struct {
+	Page
 	ID       int64
 	Name     string
 	Root     string

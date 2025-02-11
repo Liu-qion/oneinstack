@@ -30,14 +30,14 @@ func Add(param *input.AddParam) error {
 		Remark:   param.Remark,
 		Type:     param.Type,
 	}
-	op, err := NewStorageOP(m, "information_schema")
-	if err != nil {
-		return err
-	}
-	err = op.Connet()
-	if err != nil {
-		return err
-	}
+	// op, err := NewStorageOP(m, "information_schema")
+	// if err != nil {
+	// 	return err
+	// }
+	// err = op.Connet()
+	// if err != nil {
+	// 	return err
+	// }
 	tx = app.DB().Create(m)
 	return tx.Error
 }
@@ -100,7 +100,7 @@ func AddLibs(param *input.LibParam) error {
 		Remark:   s.Remark,
 		Type:     s.Type,
 	}
-	op, err := NewStorageOP(m, param.Name)
+	_, err := NewStorageOP(m, param.Name)
 	if err != nil {
 		return err
 	}
@@ -114,10 +114,10 @@ func AddLibs(param *input.LibParam) error {
 		Type:       s.Type,
 		CreateTime: time.Now(),
 	}
-	err = op.CreateLibrary(lb)
-	if err != nil {
-		return err
-	}
+	// err = op.CreateLibrary(lb)
+	// if err != nil {
+	// 	return err
+	// }
 
 	tx = app.DB().Create(lb)
 

@@ -19,8 +19,8 @@ import (
 )
 
 func main() {
-	//初始化服务
 	server.Start()
+	//初始化服务
 	resetPwdCmd.Flags().StringP("name", "n", "", "username")
 	resetPwdCmd.Flags().StringP("pwd", "p", "", "password")
 
@@ -34,7 +34,6 @@ func main() {
 	rootCmd.AddCommand(resetUserCmd)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(changePortCmd)
-	rootCmd.AddCommand(createAdminUserCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -88,6 +87,7 @@ func startServer() {
 	if app.ONE_CONFIG.System.Port == "" {
 		app.ONE_CONFIG.System.Port = "8089"
 	}
+	app.InitUser()
 	if err := r.Run("0.0.0.0:" + app.ONE_CONFIG.System.Port); err != nil {
 		log.Fatal("Server run error:", err)
 	}
@@ -282,19 +282,5 @@ var changePortCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Failed to update configuration file: %v", err)
 		}
-	},
-}
-
-var createAdminUserCmd = &cobra.Command{
-	Use:     "createAdminUser",
-	Short:   "创建管理员用户",
-	Example: "createAdminUser",
-	Run: func(cmd *cobra.Command, args []string) {
-		username, password, err := user.CreateAdminUser()
-		if err != nil {
-			log.Fatalf("Create admin user error: %v", err)
-		}
-		fmt.Println("用户名:", username)
-		fmt.Println("密码:", password)
 	},
 }

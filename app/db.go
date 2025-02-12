@@ -23,10 +23,7 @@ func InitDB(dbPath string) error {
 	if err != nil {
 		log.Fatal("failed to migrate the database:", err)
 	}
-	err = initUser()
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	return nil
 }
 
@@ -330,7 +327,7 @@ func initRemark() error {
 	return tx.Error
 }
 
-func initUser() error {
+func InitUser() error {
 	var count int64 = 0
 	tx := DB().Model(models.User{}).Count(&count)
 	if tx.Error != nil {
@@ -362,6 +359,6 @@ func setupAdminUser() error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	fmt.Printf("Admin user created successfully.\nUsername: %s\nPassword: %s\n", username, password)
+	fmt.Printf("用户创建成功.\n用户名: %s\n密码: %s\n", username, password)
 	return nil
 }

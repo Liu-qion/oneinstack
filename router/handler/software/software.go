@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/services/software"
+	"oneinstack/router/input"
 	"oneinstack/utils"
-	"oneinstack/web/input"
 
 	"github.com/gin-gonic/gin"
 )

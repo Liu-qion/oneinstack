@@ -5,7 +5,7 @@ import (
 	"oneinstack/core"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services/website"
-	"oneinstack/web/input"
+	"oneinstack/router/input"
 
 	"github.com/gin-gonic/gin"
 )

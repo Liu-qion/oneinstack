@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"oneinstack/app"
 	"oneinstack/internal/models"
-	"oneinstack/web/output"
+	"oneinstack/router/output"
 	"time"
 
 	"github.com/shirou/gopsutil/v4/cpu"

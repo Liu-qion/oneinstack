@@ -5,7 +5,7 @@ import (
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
-	"oneinstack/web/input"
+	"oneinstack/router/input"
 )
 
 func List(param *input.WebsiteQueryParam) (*services.PaginatedResult[models.Website], error) {

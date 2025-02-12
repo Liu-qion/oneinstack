@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/services/storage"
-	"oneinstack/web/input"
+	"oneinstack/router/input"
 
 	"github.com/gin-gonic/gin"
 )

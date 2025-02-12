@@ -1,14 +1,14 @@
 package web
 
 import (
-	"oneinstack/web/handler/ftp"
-	"oneinstack/web/handler/safe"
-	"oneinstack/web/handler/software"
-	"oneinstack/web/handler/storage"
-	"oneinstack/web/handler/system"
-	"oneinstack/web/handler/user"
-	"oneinstack/web/handler/website"
-	"oneinstack/web/middleware"
+	"oneinstack/router/handler/ftp"
+	"oneinstack/router/handler/safe"
+	"oneinstack/router/handler/software"
+	"oneinstack/router/handler/storage"
+	"oneinstack/router/handler/system"
+	"oneinstack/router/handler/user"
+	"oneinstack/router/handler/website"
+	"oneinstack/router/middleware"
 
 	"github.com/gin-gonic/gin"
 )

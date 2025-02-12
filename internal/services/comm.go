@@ -1,9 +1,10 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"math"
-	"oneinstack/web/input"
+	"oneinstack/router/input"
+
+	"gorm.io/gorm"
 )
 
 // PaginatedResult holds the result of a paginated query.

@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"log"
 	"oneinstack/app"
 	"oneinstack/internal/services/software"
 	"oneinstack/internal/services/user"
+	web "oneinstack/router"
+	"oneinstack/router/input"
 	"oneinstack/server"
-	"oneinstack/web"
-	"oneinstack/web/input"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func main() {

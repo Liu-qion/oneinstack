@@ -7,7 +7,7 @@ import (
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
-	"oneinstack/web/input"
+	"oneinstack/router/input"
 	"time"
 
 	"gorm.io/gorm"

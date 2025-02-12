@@ -1,12 +1,13 @@
 package user
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"oneinstack/core"
 	"oneinstack/internal/services/user"
+	"oneinstack/router/input"
 	"oneinstack/utils"
-	"oneinstack/web/input"
+
+	"github.com/gin-gonic/gin"
 )
 
 func LoginHandler(c *gin.Context) {

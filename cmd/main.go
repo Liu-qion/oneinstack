@@ -34,6 +34,7 @@ func main() {
 	rootCmd.AddCommand(resetUserCmd)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(changePortCmd)
+	rootCmd.AddCommand(createAdminUserCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -243,7 +244,6 @@ var install = &cobra.Command{
 				fmt.Println("安装失败" + err.Error())
 			}
 		}
-
 	},
 }
 
@@ -282,5 +282,19 @@ var changePortCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Failed to update configuration file: %v", err)
 		}
+	},
+}
+
+var createAdminUserCmd = &cobra.Command{
+	Use:     "createAdminUser",
+	Short:   "创建管理员用户",
+	Example: "createAdminUser",
+	Run: func(cmd *cobra.Command, args []string) {
+		username, password, err := user.CreateAdminUser()
+		if err != nil {
+			log.Fatalf("Create admin user error: %v", err)
+		}
+		fmt.Println("用户名:", username)
+		fmt.Println("密码:", password)
 	},
 }

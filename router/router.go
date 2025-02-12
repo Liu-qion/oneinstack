@@ -16,7 +16,7 @@ import (
 func SetupRouter() *gin.Engine {
 
 	r := gin.Default()
-
+	r.Use(middleware.MidUiHandle)
 	g := r.Group("/v1")
 
 	// 公共路由

@@ -25,3 +25,9 @@ server.pid
 oneinstack.iml
 
 cmd
+
+node_modules
+
+dist
+
+version

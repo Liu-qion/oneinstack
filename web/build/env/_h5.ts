@@ -4,7 +4,7 @@ export default {
   /**
    * h5打包环境
    */
-  API: '/',
+  API: '/v1',
   
   /**
    * 聊天地址

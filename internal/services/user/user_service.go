@@ -32,6 +32,13 @@ func CreateUser(username, password string, isAdmin bool) error {
 	return nil
 }
 
+func CreateAdminUser() (username, password string, err error) {
+	username = utils.GenerateRandomString(8, 12)
+	password = utils.GenerateRandomString(12, 16)
+	err = CreateUser(username, password, true)
+	return
+}
+
 func GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
 	tx := app.DB().Where("username = ?", username).First(&user)

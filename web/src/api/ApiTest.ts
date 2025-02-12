@@ -1,6 +1,6 @@
 export const ApiTest = {
   /** 上传文件 */
-  upload: (obj?: ApiData) => {
+  upload: (obj: any) => {
     return http.post(
       {
         url: '/system/upload',
@@ -16,7 +16,7 @@ export const ApiTest = {
   },
 
   /** 获取系统时间 */
-  getTime: (obj?: ApiData) => {
+  getTime: (obj: any) => {
     return http.get('/system/getTime', obj)
   }
 }

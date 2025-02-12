@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 	Short: "oneinstack",
 }
 
-const pidFile = "./server.pid" // 存储 PID 的文件路径
+const pidFile = "/usr/local/one/server.pid" // 存储 PID 的文件路径
 
 // serverStopCmd 定义启动和停止服务的命令
 var serverCmd = &cobra.Command{

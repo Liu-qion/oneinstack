@@ -34,6 +34,7 @@ func main() {
 	rootCmd.AddCommand(resetUserCmd)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(changePortCmd)
+	rootCmd.AddCommand(debugCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -46,7 +47,7 @@ var rootCmd = &cobra.Command{
 	Short: "oneinstack",
 }
 
-const pidFile = "/usr/local/one/server.pid" // 存储 PID 的文件路径
+const pidFile = "server.pid" // 存储 PID 的文件路径
 
 // serverStopCmd 定义启动和停止服务的命令
 var serverCmd = &cobra.Command{
@@ -78,7 +79,7 @@ func startServer() {
 
 	// 创建 PID 文件
 	pid := os.Getpid()
-	err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
+	err := os.WriteFile(app.GetBasePath()+pidFile, []byte(strconv.Itoa(pid)), 0644)
 	if err != nil {
 		log.Fatalf("Failed to write PID file: %v", err)
 	}
@@ -282,5 +283,15 @@ var changePortCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Failed to update configuration file: %v", err)
 		}
+	},
+}
+
+var debugCmd = &cobra.Command{
+	Use:     "debug",
+	Short:   "debug",
+	Example: "debug",
+	Run: func(cmd *cobra.Command, args []string) {
+		app.ENV = "debug"
+		startServer()
 	},
 }

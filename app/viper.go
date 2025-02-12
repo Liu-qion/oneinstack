@@ -9,7 +9,7 @@ import (
 )
 
 func Viper(path ...string) *viper.Viper {
-	config := "/usr/local/one/config.yaml"
+	config := GetBasePath() + "config.yaml"
 
 	// 检查 config.yaml 是否存在
 	if _, err := os.Stat(config); os.IsNotExist(err) {

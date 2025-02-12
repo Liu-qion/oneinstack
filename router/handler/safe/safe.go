@@ -9,7 +9,7 @@ import (
 )
 
 func GetFirewallInfo(c *gin.Context) {
-	info, err := safe.GetFirewallInfo()
+	info, err := safe.GetFirewallStatus()
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
@@ -27,7 +27,7 @@ func GetFirewallStatus(c *gin.Context) {
 }
 
 func GetFirewallRules(c *gin.Context) {
-	rules, err := safe.GetPortRules()
+	rules, err := safe.GetFirewallPorts()
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

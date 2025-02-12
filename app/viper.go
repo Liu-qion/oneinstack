@@ -13,7 +13,7 @@ func Viper(path ...string) *viper.Viper {
 
 	// 检查 config.yaml 是否存在
 	if _, err := os.Stat(config); os.IsNotExist(err) {
-		fmt.Println("未找到 config.yaml 文件，创建默认配置文件...")
+		fmt.Println("未找到 config.yaml 文件，创建默认配置文件..." + config)
 		defaultConfig := `
 system:
     port: 8089

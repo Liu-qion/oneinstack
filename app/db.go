@@ -13,6 +13,7 @@ import (
 )
 
 func InitDB(dbPath string) error {
+	fmt.Println("创建db..." + dbPath)
 	d, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return err

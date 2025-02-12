@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"os"
 )
 
 func Viper(path ...string) *viper.Viper {
-	config := "config.yaml"
+	config := "./config.yaml"
 
 	// 检查 config.yaml 是否存在
 	if _, err := os.Stat(config); os.IsNotExist(err) {

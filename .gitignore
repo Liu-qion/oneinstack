@@ -20,6 +20,8 @@ cmd/oneinstack
 
 *.sh
 
+!install.sh
+
 server.pid
 
 oneinstack.iml

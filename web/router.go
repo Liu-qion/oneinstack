@@ -2,6 +2,7 @@ package web
 
 import (
 	"oneinstack/web/handler/ftp"
+	"oneinstack/web/handler/safe"
 	"oneinstack/web/handler/software"
 	"oneinstack/web/handler/storage"
 	"oneinstack/web/handler/system"
@@ -83,6 +84,14 @@ func SetupRouter() *gin.Engine {
 		websiteg.POST("/add", website.Add)
 		websiteg.POST("/del", website.Delete)
 		websiteg.POST("/update", website.Update)
+	}
+
+	safeg := g.Group("/safe")
+	sys.Use(middleware.AuthMiddleware())
+	{
+		safeg.GET("/info", safe.GetFirewallInfo)
+		safeg.GET("/status", safe.GetFirewallStatus)
+		safeg.GET("/rules", safe.GetFirewallRules)
 	}
 
 	return r

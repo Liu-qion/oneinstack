@@ -1,0 +1,88 @@
+:deep(.ml-1) {
+  margin-left: 8px;
+}
+
+:deep(.ml-2) {
+  margin-left: 16px;
+}
+
+:deep(.mr-1) {
+  margin-right: 8px;
+}
+
+:deep(.mr-2) {
+  margin-right: 16px;
+}
+
+:deep(.btnItem) {
+  padding-inline: 12px;
+  min-width: 114px;
+  height: 36px;
+  border-radius: 2px;
+  border: 1px solid rgb(var(--border-color-gray));
+  color: var(--font-color-black);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: rgb(var(--primary-color));
+    color: var(--font-color-white);
+
+    .el-dropdown-link {
+      color: var(--font-color-white);
+    }
+  }
+}
+
+:deep(.search) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+:deep(.box1) {
+  width: 100%;
+  height: 58px;
+  background: rgb(var(--bg-card-color));
+  margin-block: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--font-color-gray-light);
+  padding-inline: 28px 16px;
+}
+
+:deep(.box2) {
+  background: rgb(var(--bg-card-color));
+  margin-top: 10px;
+  border-radius: 5px;
+  padding: 10px;
+
+  .pagination {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+}
+
+:deep(.container) {
+  padding-top: 22px;
+}
+
+:deep(.demo-form-inline) {
+  .el-input {
+    --el-input-width: 220px;
+  }
+}
+
+:deep(.hover-opacity) {
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+}

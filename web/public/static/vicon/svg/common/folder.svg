@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <defs>
+    <style>.a{fill:none;}.b{fill:#eab170;isolation:isolate;}</style>
+  </defs>
+  <g transform="translate(22333 830)">
+    <rect class="a" width="22" height="22" transform="translate(-22333 -830)" />
+    <path
+      fill="#eab170"
+      d="M5.082,1H1.059V13H16.941V2H6.141ZM18,14H0V0H5.612L6.671,1H18V14Zm-3.176-4v1H10.588V10Z"
+      transform="translate(-22331 -826)" />
+  </g>
+</svg>

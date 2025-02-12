@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <defs>
+    <style>.a{isolation:isolate;}.b{fill:none;}</style>
+  </defs>
+  <g transform="translate(-366 -223)">
+    <path
+      class="a"
+      fill="#d9d9d9"
+      d="M4.816,4.916.09.49a.274.274,0,0,1,0-.406.321.321,0,0,1,.433,0L5.032,4.307,9.541.084a.321.321,0,0,1,.433,0,.274.274,0,0,1,0,.406L5.249,4.916a.322.322,0,0,1-.433,0Z"
+      transform="translate(367 227)" />
+    <rect class="b" width="12" height="12" transform="translate(366 223)" />
+  </g>
+</svg>

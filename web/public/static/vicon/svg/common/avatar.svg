@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+  <defs>
+    <style>.a{opacity:0.6;isolation:isolate;}</style>
+  </defs>
+  <g transform="translate(-1818 -30)">
+    <path
+      fill="#ffffff"
+      d="M0,22A22,22,0,1,1,22,44,22,22,0,0,1,0,22Z"
+      transform="translate(1818 30)"
+    />
+    <path
+      fill="#838383"
+      d="M83.831,30.065a6.774,6.774,0,1,0-6.874-6.774A6.832,6.832,0,0,0,83.831,30.065Zm2.833.652H81.513a8.623,8.623,0,0,0-8.68,8.547v.507c0,2.464,3.831,2.464,8.68,2.464h5.151c4.658,0,8.681,0,8.681-2.464v-.507A8.624,8.624,0,0,0,86.664,30.718Z"
+      transform="translate(1755.911 21.482)" />
+  </g>
+</svg>

@@ -31,7 +31,7 @@ func SetupRouter() *gin.Engine {
 		sys.GET("/monitor", system.GetSystemMonitor)
 		sys.GET("/libcount", system.GetLibCount)
 		sys.GET("/websitecount", system.GetWebSiteCount)
-
+		sys.GET("/systeminfo", system.SystemInfo)
 		sys.GET("/remark/:id", system.RemarkList)
 		sys.POST("/remark/add", system.AddRemark)
 		sys.POST("/remark/update", system.UpdateRemark)

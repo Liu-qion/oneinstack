@@ -5,6 +5,7 @@ import (
 	"log"
 	"oneinstack/app"
 	"oneinstack/internal/services/software"
+	"oneinstack/internal/services/system"
 	"oneinstack/internal/services/user"
 	web "oneinstack/router"
 	"oneinstack/router/input"
@@ -15,7 +16,6 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func main() {
@@ -258,30 +258,9 @@ var changePortCmd = &cobra.Command{
 			log.Fatalf("Port not provided")
 		}
 
-		// 检查配置文件是否存在
-		configFile := "config.yaml"
-		if _, err := os.Stat(configFile); os.IsNotExist(err) {
-			log.Fatalf("Configuration file %s not found", configFile)
-		}
-
-		// 使用 viper 读取和更新配置
-		v := viper.New()
-		v.SetConfigFile(configFile)
-		v.SetConfigType("yaml")
-
-		// 读取配置文件
-		err := v.ReadInConfig()
+		err := system.UpdateSystemPort(port)
 		if err != nil {
-			log.Fatalf("Failed to read configuration file: %v", err)
-		}
-
-		// 更新端口配置
-		v.Set("system.port", port)
-
-		// 保存更新到配置文件
-		err = v.WriteConfig()
-		if err != nil {
-			log.Fatalf("Failed to update configuration file: %v", err)
+			log.Fatalf("Failed to update system port: %v", err)
 		}
 	},
 }

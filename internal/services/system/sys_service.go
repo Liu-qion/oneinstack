@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"oneinstack/app"
 	"oneinstack/internal/models"
+	"oneinstack/router/input"
 	"oneinstack/router/output"
+	"os"
 	"time"
 
 	"github.com/shirou/gopsutil/v4/cpu"
@@ -12,6 +14,7 @@ import (
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/net"
+	"github.com/spf13/viper"
 )
 
 func GetSystemMonitor() (map[string]interface{}, error) {
@@ -306,4 +309,82 @@ func GetWebSiteCount() (int64, error) {
 		return 0, tx.Error
 	}
 	return count, nil
+}
+
+func SystemInfo() (map[string]interface{}, error) {
+	port := app.ONE_CONFIG.System.Port
+	u := models.User{}
+	tx := app.DB().Model(&u).First(&u)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	info := map[string]interface{}{
+		"port": port,
+		"user": u,
+	}
+	return info, nil
+}
+
+func UpdateSystemPort(port string) error {
+	if port == "" {
+		return fmt.Errorf("Port not provided")
+	}
+	configFile := app.GetBasePath() + "/config.yaml"
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		return fmt.Errorf("Configuration file %s not found", configFile)
+	}
+
+	// 使用 viper 读取和更新配置
+	v := viper.New()
+	v.SetConfigFile(configFile)
+	v.SetConfigType("yaml")
+
+	// 读取配置文件
+	err := v.ReadInConfig()
+	if err != nil {
+		return fmt.Errorf("Failed to read configuration file: %v", err)
+	}
+
+	// 更新端口配置
+	v.Set("system.port", port)
+
+	// 保存更新到配置文件
+	err = v.WriteConfig()
+	if err != nil {
+		return fmt.Errorf("Failed to update configuration file: %v", err)
+	}
+	tx := app.DB().Model(&app.ONE_CONFIG.System).Update("port", port)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}
+
+func UpdateUser(user models.User) error {
+	u := models.User{}
+	tx := app.DB().Where("username = ?", user.Username).First(&u)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	u.Password = user.Password
+	u.Username = user.Username
+	tx = app.DB().Updates(u)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}
+
+func ResetPassword(user input.ResetPasswordRequest) error {
+	u := models.User{}
+	tx := app.DB().Where("username = ? and password = ?", user.Username, user.Password).First(&u)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	u.Password = user.NewPassword
+	tx = app.DB().Updates(u)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }

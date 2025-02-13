@@ -1,7 +1,6 @@
 package software
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"oneinstack/app"
@@ -82,20 +81,30 @@ func checkRedis(sf *models.Software) bool {
 	return true
 }
 
-func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software], error) {
-	tx := app.DB()
+func List(param *input.SoftwareParam) (*services.PaginatedResult[output.Software], error) {
+	tx := app.DB().Select(
+		"MAX(id) as id," +
+			"`key`," +
+			"GROUP_CONCAT(DISTINCT version ORDER BY version DESC) as versions," +
+			"MAX(name) as name," +
+			"MAX(icon) as icon," +
+			"MAX(type) as type," +
+			"MAX(status) as status," +
+			"MAX(resource) as resource," +
+			"MAX(is_update) as is_update," +
+			"MAX(installed) as installed," +
+			"MAX(tags) as tags").
+		Group("`key`")
 	if param.Id > 0 {
 		tx = tx.Where("id = ?", param.Id)
 	}
 
 	if param.Name != "" {
-		searchName := "%" + param.Name + "%"
-		tx = tx.Where("name LIKE ?", searchName)
+		tx = tx.Where("name LIKE ?", "%"+param.Name+"%")
 	}
 
 	if param.Key != "" {
-		searchKey := "%" + param.Key + "%"
-		tx = tx.Where("key LIKE ?", searchKey)
+		tx = tx.Where("key LIKE ?", "%"+param.Key+"%")
 	}
 
 	if param.Type != "" {
@@ -126,45 +135,36 @@ func List(param *input.SoftwareParam) (*services.PaginatedResult[models.Software
 		tx = tx.Where("installed = ?", isi)
 	}
 
-	if param.Versions != "" {
-		searchVersions := "%" + param.Versions + "%"
-		tx = tx.Where("versions LIKE ?", searchVersions)
+	if param.Tags != "" {
+		tx = tx.Where("tags LIKE ?", "%"+param.Tags+"%")
 	}
 
-	if param.Tags != "" {
-		searchTags := "%" + param.Tags + "%"
-		tx = tx.Where("tags LIKE ?", searchTags)
-	}
-	return services.Paginate[models.Software](tx, &models.Software{}, &input.Page{
+	paginated, err := services.Paginate[models.Softwares](tx, &models.Softwares{}, &input.Page{
 		Page:     param.Page.Page,
 		PageSize: param.Page.PageSize,
 	})
-}
 
-func convertOldToNew(old *models.Software) (*output.Software, error) {
-	ps := []*output.SoftParam{}
-	if old.Params != "" {
-		err := json.Unmarshal([]byte(old.Params), &ps)
-		if err != nil {
-			return nil, err
-		}
+	// 转换版本格式
+	var groupedResults []output.Software
+	for _, item := range paginated.Data {
+		groupedResults = append(groupedResults, output.Software{
+			Id:       item.Id,
+			Name:     item.Name,
+			Key:      item.Key,
+			Icon:     item.Icon,
+			Type:     item.Type,
+			Status:   item.Status,
+			Resource: item.Resource,
+			Versions: strings.Split(item.Versions, ","),
+		})
 	}
-	newSoftware := &output.Software{
-		Id:        old.Id,
-		Name:      old.Name,
-		Key:       old.Key,
-		Icon:      old.Icon,
-		Type:      old.Type,
-		Status:    old.Status,
-		Resource:  old.Resource,
-		Installed: old.Installed,
-		Log:       old.Log,
-		Params:    ps,
-	}
-	if old.Version != "" {
-		newSoftware.Version = strings.Split(old.Version, ",")
-	}
-	return newSoftware, nil
+
+	return &services.PaginatedResult[output.Software]{
+		Data:     groupedResults,
+		Total:    paginated.Total,
+		Page:     paginated.Page,
+		PageSize: paginated.PageSize,
+	}, err
 }
 
 func Sync() {

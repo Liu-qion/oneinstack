@@ -37,6 +37,11 @@ type Software struct {
 	CreateTime  time.Time `json:"create_time"`
 }
 
+type Softwares struct {
+	Software
+	Versions string `gorm:"column:versions"`
+}
+
 func (m *Software) BeforeCreate(tx *gorm.DB) (err error) {
 	m.CreateTime = time.Now()
 	return

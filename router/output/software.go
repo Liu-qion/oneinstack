@@ -10,7 +10,7 @@ type Software struct {
 	Resource  string       `json:"resource"`
 	Log       string       `json:"log"`
 	Installed bool         `json:"installed"`
-	Version   []string     `json:"version"`
+	Versions  []string     `json:"versions"`
 	Tags      string       `json:"tags"`
 	Params    []*SoftParam `json:"params"`
 }

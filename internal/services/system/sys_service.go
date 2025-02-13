@@ -327,11 +327,11 @@ func SystemInfo() (map[string]interface{}, error) {
 
 func UpdateSystemPort(port string) error {
 	if port == "" {
-		return fmt.Errorf("Port not provided")
+		return fmt.Errorf(" Port not provided")
 	}
 	configFile := app.GetBasePath() + "/config.yaml"
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		return fmt.Errorf("Configuration file %s not found", configFile)
+		return fmt.Errorf(" Configuration file %s not found", configFile)
 	}
 
 	// 使用 viper 读取和更新配置
@@ -342,7 +342,7 @@ func UpdateSystemPort(port string) error {
 	// 读取配置文件
 	err := v.ReadInConfig()
 	if err != nil {
-		return fmt.Errorf("Failed to read configuration file: %v", err)
+		return fmt.Errorf(" Failed to read configuration file: %v", err)
 	}
 
 	// 更新端口配置
@@ -351,7 +351,7 @@ func UpdateSystemPort(port string) error {
 	// 保存更新到配置文件
 	err = v.WriteConfig()
 	if err != nil {
-		return fmt.Errorf("Failed to update configuration file: %v", err)
+		return fmt.Errorf(" Failed to update configuration file: %v", err)
 	}
 	tx := app.DB().Model(&app.ONE_CONFIG.System).Update("port", port)
 	if tx.Error != nil {

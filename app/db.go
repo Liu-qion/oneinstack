@@ -57,6 +57,10 @@ func createTables() error {
 	if err != nil {
 		return err
 	}
+	err = db.AutoMigrate(&models.IptablesRule{})
+	if err != nil {
+		return err
+	}
 	err = initSoftware()
 	if err != nil {
 		return err

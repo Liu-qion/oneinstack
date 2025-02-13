@@ -90,8 +90,12 @@ func SetupRouter() *gin.Engine {
 	sys.Use(middleware.AuthMiddleware())
 	{
 		safeg.GET("/info", safe.GetFirewallInfo)
-		safeg.GET("/status", safe.GetFirewallStatus)
-		safeg.GET("/rules", safe.GetFirewallRules)
+		safeg.POST("/rules", safe.GetFirewallRules)
+		safeg.POST("/add", safe.AddFirewallRule)
+		safeg.POST("/update", safe.UpdateFirewallRule)
+		safeg.POST("/del", safe.DeleteFirewallRule)
+		safeg.POST("/stop", safe.StopFirewall)
+		safeg.POST("/blockping", safe.BlockPing)
 	}
 
 	return r

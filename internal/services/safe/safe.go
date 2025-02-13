@@ -122,6 +122,9 @@ func UpdateUfwRule(new *models.IptablesRule) error {
 	if err := DeleteUfwRule(oldRule.ID); err != nil {
 		return fmt.Errorf("failed to remove old rule: %v", err)
 	}
+	if new.State == 0 {
+		return fmt.Errorf("状态不能为禁用")
+	}
 	if err := addUfwRule(new); err != nil {
 		// 尝试恢复旧规则
 		_ = addUfwRule(oldRule)

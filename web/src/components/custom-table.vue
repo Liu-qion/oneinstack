@@ -84,7 +84,7 @@ const conf = reactive({
               )
             "
             :effect="sapp.theme === 'light' ? 'dark' : 'light'"
-            :content="row[item.prop]"
+            :content="row[item.prop]?.toString()"
             placement="bottom"
           >
             <div

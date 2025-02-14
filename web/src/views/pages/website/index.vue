@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, toRaw } from 'vue'
 import SearchInput from '@/components/search-input.vue'
-import { Refresh, Setting, ArrowDown } from '@element-plus/icons-vue'
+import { Refresh, Setting, ArrowDown, CaretBottom } from '@element-plus/icons-vue'
 import CardTabs from '@/components/card-tabs.vue'
 import CustomTable from '@/components/custom-table.vue'
 import { Api } from '@/api/Api'
@@ -17,22 +17,22 @@ const conf = reactive({
         index: 0,
         value: 'php'
       },
-      {
-        name: 'JAVA项目',
-        index: 1
-      },
-      {
-        name: 'Node项目',
-        index: 2
-      },
-      {
-        name: 'Go项目',
-        index: 3
-      },
-      {
-        name: 'Python项目',
-        index: 4
-      },
+      // {
+      //   name: 'JAVA项目',
+      //   index: 1
+      // },
+      // {
+      //   name: 'Node项目',
+      //   index: 2
+      // },
+      // {
+      //   name: 'Go项目',
+      //   index: 3
+      // },
+      // {
+      //   name: 'Python项目',
+      //   index: 4
+      // },
       {
         name: '反向代理',
         index: 5,
@@ -42,11 +42,11 @@ const conf = reactive({
         name: 'HTML项目',
         index: 6,
         value: 'static'
-      },
-      {
-        name: '其他项目',
-        index: 7
       }
+      // {
+      //   name: '其他项目',
+      //   index: 7
+      // }
     ],
     clickActive: (item: any) => {
       conf.tabs.activeIndex = item.index
@@ -86,6 +86,7 @@ const conf = reactive({
     show: false,
     title: '创建网站',
     type: 'add',
+    loading: false,
     open: (type: 'add' | 'edit', row?: any) => {
       conf.drawer.title = '创建网站'
       conf.drawer.type = type
@@ -108,8 +109,10 @@ const conf = reactive({
           ? `${conf.form.data.value.hostDomain},${otherDomain}`
           : conf.form.data.value.hostDomain
         console.log(conf.form.data.value)
+        conf.drawer.loading = true
         const api = conf.drawer.type === 'add' ? Api.addWebsite : Api.updateWebsite
         await api(conf.form.data.value)
+        conf.drawer.loading = false
         conf.drawer.show = false
         conf.website.getData()
       })
@@ -239,73 +242,56 @@ conf.website.getData()
       :list="conf.tabs.list"
       :active-index="conf.tabs.activeIndex"
       :click-active="conf.tabs.clickActive"
-      style="margin-bottom: 20px"
     />
-    <div class="search">
-      <div class="btn">
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button style="height: 100%" type="primary" @click="conf.website.handleAdd">添加站点</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <el-dropdown>
-                <span class="el-dropdown-link">
-                  高级设置
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>修改默认页面</el-dropdown-item>
-                    <el-dropdown-item>默认站点</el-dropdown-item>
-                    <el-dropdown-item>PHP命令行版本</el-dropdown-item>
-                    <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
-                    <el-dropdown-item>TLS设置</el-dropdown-item>
-                    <el-dropdown-item>全局设置</el-dropdown-item>
-                    <el-dropdown-item>关联数据库</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>
-                漏洞扫描（
-                <span style="color: var(--el-color-primary)">0</span>
-                ）
+    <div class="tool-bar">
+      <el-space class="btn-group" :size="14">
+        <el-button type="primary" @click="conf.website.handleAdd">添加站点</el-button>
+        <!-- <el-dropdown>
+            <el-button type="primary">
+              <span class="el-dropdown-link">
+                高级设置
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
               </span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span style="font-size: 14px; margin-right: 8px">nignx</span>
-              <v-s-icon name="triangle" size="16" />
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <el-dropdown>
-                <span class="el-dropdown-link">
-                  全部分类
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>修改默认页面</el-dropdown-item>
-                    <el-dropdown-item>默认站点</el-dropdown-item>
-                    <el-dropdown-item>PHP命令行版本</el-dropdown-item>
-                    <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
-                    <el-dropdown-item>TLS设置</el-dropdown-item>
-                    <el-dropdown-item>全局设置</el-dropdown-item>
-                    <el-dropdown-item>关联数据库</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>修改默认页面</el-dropdown-item>
+                <el-dropdown-item>默认站点</el-dropdown-item>
+                <el-dropdown-item>PHP命令行版本</el-dropdown-item>
+                <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
+                <el-dropdown-item>TLS设置</el-dropdown-item>
+                <el-dropdown-item>全局设置</el-dropdown-item>
+                <el-dropdown-item>关联数据库</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-button type="primary">
+            <span>漏洞扫描（0）</span>
+          </el-button>
+          <el-button type="primary">
+            <span style="font-size: 14px; margin-right: 8px">nignx</span>
+            <el-icon><CaretBottom /></el-icon>
+          </el-button>
+          <el-dropdown>
+            <el-button type="primary">
+              <span class="el-dropdown-link">
+                全部分类
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </span>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>修改默认页面</el-dropdown-item>
+                <el-dropdown-item>默认站点</el-dropdown-item>
+                <el-dropdown-item>PHP命令行版本</el-dropdown-item>
+                <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
+                <el-dropdown-item>TLS设置</el-dropdown-item>
+                <el-dropdown-item>全局设置</el-dropdown-item>
+                <el-dropdown-item>关联数据库</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown> -->
+      </el-space>
       <div class="demo-form-inline">
         <search-input
           v-model="conf.website.params.name"
@@ -338,6 +324,7 @@ conf.website.getData()
     <custom-drawer
       :visible="conf.drawer.show"
       :title="conf.drawer.title"
+      :loading="conf.drawer.loading"
       :on-close="conf.drawer.onClose"
       :on-confirm="conf.drawer.onConfirm"
     >

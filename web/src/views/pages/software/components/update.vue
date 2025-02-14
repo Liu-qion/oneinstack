@@ -108,6 +108,7 @@ withDefaults(defineProps<ChildProps>(), {
         height: 86px;
         background: #ffffff;
         border-radius: 8px;
+        overflow: hidden;
 
         img {
           width: 100%;

@@ -76,37 +76,17 @@ const onSubmit = () => {
       </div>
       <el-button>清空</el-button>
     </div>
-    <div class="search">
-      <div class="btn">
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" style="height: 100%" @click="handleAdd">添加端口规则</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem" @click="exportClick">
-              <span>导入规则</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>导出规则</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="flex">
-              <div class="btnItem">
-                <span>所有方向</span>
-              </div>
-              <div class="btnItem">
-                <span>入站</span>
-              </div>
-              <div class="btnItem">
-                <span>出站</span>
-              </div>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
+    <div class="tool-bar">
+      <el-space class="btn-group">
+        <el-button type="primary" @click="handleAdd">添加端口规则</el-button>
+        <el-button type="primary" @click="exportClick">导入规则</el-button>
+        <el-button type="primary" @click="exportClick">导出规则</el-button>
+        <el-button-group>
+          <el-button type="primary">所有方向</el-button>
+          <el-button type="primary">入站</el-button>
+          <el-button type="primary">出站</el-button>
+        </el-button-group>
+      </el-space>
       <div class="demo-form-inline">
         <search-input placeholder="请输入关键词进行搜索" />
       </div>

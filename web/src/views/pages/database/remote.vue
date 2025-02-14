@@ -130,13 +130,9 @@ conf.list.getData()
 <template>
   <div class="database-container">
     <div class="container">
-      <div class="search">
-        <div class="btn">
-          <el-row :gutter="10" class="mb8">
-            <el-col :span="1.5">
-              <el-button style="height: 100%" type="primary" @click="conf.drawer.open('add')">添加远程服务器</el-button>
-            </el-col>
-          </el-row>
+      <div class="tool-bar">
+        <div class="btn-group">
+          <el-button type="primary" @click="conf.drawer.open('add')">添加远程服务器</el-button>
         </div>
       </div>
       <div class="box2">
@@ -151,13 +147,13 @@ conf.list.getData()
           <template #empty>
             <div style="margin-top: 40px">
               <span>
-                您的数据库列表为空，您可以
+                您的远程服务器列表为空，您可以
                 <a
                   class="cursor-pointer"
                   style="color: var(--el-color-primary); text-decoration: underline"
                   @click="conf.drawer.open('add')"
                 >
-                  添加一个数据库
+                  添加一个远程服务器
                 </a>
               </span>
             </div>

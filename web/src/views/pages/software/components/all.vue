@@ -6,6 +6,7 @@ import CustomForm, { type FormItem, type Props as FormProps } from '@/components
 import { FormInstance } from 'element-plus'
 import { Api } from '@/api/Api'
 import { Scope } from 'tools-vue3'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 const emit = defineEmits<ChildEmits>()
 
@@ -39,9 +40,12 @@ const installForm = reactive<FormProps['data']>({
   items: []
 })
 
-const handleClickInstall = (item: any) => {
+const handleSelectVersion = (v: string, item: any) => {
   installForm.value.key = item.key
-  installForm.value.version = item.version
+  installForm.value.version = v
+}
+
+const handleClickInstall = (item: any) => {
   if (!item.params) return handleInstall()
   const config = JSON.parse(item.params)
   installForm.items = (config as []).map<FormItem>((item: any) => ({
@@ -98,7 +102,7 @@ const handleCheckInstallLog = async (value: string) => {
                   <span v-if="item.tags" class="remark">（{{ item.tags }}）</span>
                   <span
                     v-if="item.status !== 0"
-                    class="status"
+                    class="status ml-2"
                     :class="{ error: item.status === 3, success: item.status === 2, installing: item.status === 1 }"
                     @click="handleCheckInstallLog(item.log)"
                   >
@@ -111,8 +115,22 @@ const handleCheckInstallLog = async (value: string) => {
             <div class="xian" />
             <div class="below">
               <div>
-                <span>安装版本：</span>
-                <span>{{ item.version }}</span>
+                <el-dropdown :disabled="!(item.versions.length > 1)">
+                  <span class="flex items-center" style="color: var(--font-color-gray-light)">
+                    <span>安装版本：</span>
+                    {{ installForm.value.key === item.key ? installForm.value.version : item.versions[0] }}
+                    <el-icon v-if="item.versions.length > 1" class="el-icon--right">
+                      <arrow-down />
+                    </el-icon>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="(v, i) in item.versions" :key="i" @click="handleSelectVersion(v, item)">
+                        {{ v }}
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </div>
               <div class="btn" :class="{ installed: item.installed }" @click="handleClickInstall(item)">
                 {{ item.installed ? '已安装' : '安装' }}
@@ -193,6 +211,7 @@ const handleCheckInstallLog = async (value: string) => {
         height: 86px;
         background: #ffffff;
         border-radius: 8px;
+        overflow: hidden;
 
         img {
           width: 100%;

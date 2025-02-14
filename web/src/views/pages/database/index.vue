@@ -25,23 +25,23 @@ const conf = reactive({
         index: 0,
         value: 'mysql'
       },
-      {
-        name: 'SQLServer',
-        index: 1
-      },
-      {
-        name: 'MongoDB',
-        index: 2
-      },
+      // {
+      //   name: 'SQLServer',
+      //   index: 1
+      // },
+      // {
+      //   name: 'MongoDB',
+      //   index: 2
+      // },
       {
         name: 'Redis',
         index: 3,
         value: 'redis'
       },
-      {
-        name: 'PgSQL',
-        index: 4
-      }
+      // {
+      //   name: 'PgSQL',
+      //   index: 4
+      // }
     ],
     clickActive: (item: any) => {
       if (conf.tabs.activeIndex === item.index) return
@@ -187,7 +187,9 @@ const conf = reactive({
   }
 })
 
-conf.list.getData()
+const routeName = (System.getRouterPath() as string).match(/(?<=\/database\/)\w*/)?.[0]
+conf.tabs.activeIndex = conf.tabs.list.find((item) => item.value === routeName)!.index
+conf.list.params.type = routeName
 </script>
 
 <template>

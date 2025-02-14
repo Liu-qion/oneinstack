@@ -109,53 +109,29 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
 <template>
   <div class="container">
-    <div class="search">
-      <div class="btn">
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" style="height: 100%">添加任务</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>执行任务</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>启动任务</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>停止任务</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>设置任务</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>删除任务</span>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
+    <div class="tool-bar">
+      <el-space class="btn-group">
+        <el-button type="primary">添加任务</el-button>
+        <el-button type="primary">执行任务</el-button>
+        <el-button type="primary">启动任务</el-button>
+        <el-button type="primary">停止任务</el-button>
+        <el-button type="primary">设置任务</el-button>
+        <el-button type="primary">删除任务</el-button>
+      </el-space>
       <div class="demo-form-inline flex">
-        <div class="btnItem mr-2">
-          <el-dropdown>
+        <el-dropdown>
+          <el-button type="primary" class="mr-2">
             <span class="el-dropdown-link">
               全部分类
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>分类</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>分类</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <search-input placeholder="请输入域名或备注" style="margin-right: 18px" />
         <el-button :icon="Refresh" type="primary" @click="onSubmit" />
         <el-button :icon="Setting" type="primary" @click="onSubmit" />

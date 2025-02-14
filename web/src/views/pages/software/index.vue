@@ -104,7 +104,7 @@ const conf = reactive({
       const { data: res } = await Api.getSoftList(conf.list.params)
       conf.list.loading = false
       conf.list.total = res.total
-      conf.list.data = res.data
+      conf.list.data = res.data ?? []
     },
     pageChange: (value: number) => {
       conf.list.params.page = value

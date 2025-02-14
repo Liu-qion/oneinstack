@@ -73,6 +73,10 @@ func createTables() error {
 	if err != nil {
 		return err
 	}
+	err = InitSystem()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -366,4 +370,19 @@ func setupAdminUser() error {
 	}
 	fmt.Printf("用户创建成功.\n用户名: %s\n密码: %s\n", username, password)
 	return nil
+}
+
+func InitSystem() error {
+	r := &models.System{
+		Title: "OneStack",
+	}
+	result := db.First(r)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return result.Error
+	}
+	if r.ID > 0 {
+		return nil
+	}
+	tx := db.Create(r)
+	return tx.Error
 }

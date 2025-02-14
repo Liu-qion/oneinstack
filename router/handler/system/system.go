@@ -3,7 +3,9 @@ package system
 import (
 	"net/http"
 	"oneinstack/core"
+	"oneinstack/internal/models"
 	"oneinstack/internal/services/system"
+	"oneinstack/router/input"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,4 +53,46 @@ func SystemInfo(c *gin.Context) {
 		return
 	}
 	core.HandleSuccess(c, info)
+}
+
+func UpdateUser(c *gin.Context) {
+	user := models.User{}
+	if err := c.ShouldBindJSON(&user); err != nil {
+		core.HandleError(c, http.StatusBadRequest, err, nil)
+		return
+	}
+	err := system.UpdateUser(user)
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, nil)
+}
+
+func ResetPassword(c *gin.Context) {
+	user := input.ResetPasswordRequest{}
+	if err := c.ShouldBindJSON(&user); err != nil {
+		core.HandleError(c, http.StatusBadRequest, err, nil)
+		return
+	}
+	err := system.ResetPassword(user)
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, nil)
+}
+
+func UpdatePort(c *gin.Context) {
+	param := input.UpdatePortRequest{}
+	if err := c.ShouldBindJSON(&param); err != nil {
+		core.HandleError(c, http.StatusBadRequest, err, nil)
+		return
+	}
+	err := system.UpdateSystemPort(param.Port)
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, nil)
 }

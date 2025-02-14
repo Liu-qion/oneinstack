@@ -58,20 +58,12 @@ const conf = reactive({
           <el-tab-pane v-for="item in conf.tabs" :key="item.index" :label="item.name" :name="item.index" />
         </el-tabs>
       </div>
-      <div class="search">
-        <div class="btn">
-          <el-row :gutter="10" class="mb8">
-            <el-col :span="1.5">
-              <el-button @click="conf.handleAdd">刷新日志</el-button>
-            </el-col>
-            <el-col :span="1.5">
-              <el-button @click="conf.handleAdd">清空日志</el-button>
-            </el-col>
-            <el-col :span="1.5">
-              <el-button @click="conf.handleAdd">IP操作统计</el-button>
-            </el-col>
-          </el-row>
-        </div>
+      <div class="tool-bar">
+        <el-space :size="14" class="btn-group">
+          <el-button type="primary" @click="conf.handleAdd">刷新日志</el-button>
+          <el-button type="primary" @click="conf.handleAdd">清空日志</el-button>
+          <el-button type="primary" @click="conf.handleAdd">IP操作统计</el-button>
+        </el-space>
         <div class="demo-form-inline">
           <SearchInput placeholder="请输入搜索关键字" />
         </div>
@@ -114,7 +106,6 @@ const conf = reactive({
   height: 60px;
   background: rgba(var(--category-item-bg-color), 0.6);
   border-radius: 4px;
-  margin-bottom: 30px;
 }
 
 :deep(.el-tabs__nav-wrap) {

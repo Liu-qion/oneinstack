@@ -144,15 +144,17 @@ const conf = reactive({
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
-        }).then((res) => {
-          if (res === 'confirm') {
-            ElMessage({
-              type: 'success',
-              message: '退出成功'
-            })
-            sconfig.logout(true)
-          }
-        }).catch(() => {})
+        })
+          .then((res) => {
+            if (res === 'confirm') {
+              ElMessage({
+                type: 'success',
+                message: '退出成功'
+              })
+              sconfig.logout(true)
+            }
+          })
+          .catch(() => {})
       }
     }
   ] as NavItem[]
@@ -179,14 +181,16 @@ const conf = reactive({
             <div class="col relative fit-width">
               <div class="absolute fit-height fit-width">
                 <el-scrollbar height="100%">
-                  <el-menu :collapse="conf.isCollapse" :default-active="route.path" router>
+                  <el-menu :collapse="conf.isCollapse" :default-active="route.path.match(/\/\w*/)?.[0]" router>
                     <template v-for="item in conf.navList" :key="item.path">
                       <el-sub-menu v-if="item.children" :index="item.path" :popper-offset="-110">
                         <template #title>
                           <v-s-icon
                             :name="item.icon"
                             :color="
-                              route.path === item.path ? item.activeColor[sapp.theme] : conf.defaultColor[sapp.theme]
+                              route.path.includes(item.path)
+                                ? item.activeColor[sapp.theme]
+                                : conf.defaultColor[sapp.theme]
                             "
                             size="26"
                           />
@@ -201,7 +205,9 @@ const conf = reactive({
                           <v-s-icon
                             :name="child.icon"
                             :color="
-                              route.path === child.path ? child.activeColor[sapp.theme] : conf.defaultColor[sapp.theme]
+                              route.path.includes(child.path)
+                                ? child.activeColor[sapp.theme]
+                                : conf.defaultColor[sapp.theme]
                             "
                             size="26"
                           />
@@ -212,7 +218,9 @@ const conf = reactive({
                         <v-s-icon
                           :name="item.icon"
                           :color="
-                            route.path === item.path ? item.activeColor[sapp.theme] : conf.defaultColor[sapp.theme]
+                            route.path.includes(item.path)
+                              ? item.activeColor[sapp.theme]
+                              : conf.defaultColor[sapp.theme]
                           "
                           size="26"
                         />

@@ -26,8 +26,11 @@ export default class HttpConfig {
       funrun(config.data, ['final', 'fail', 'complete'], _code == 200, config, xhr)
       switch (code) {
         case HttpCode.LOGIN_EXPIRED:
-          System.er('登录过期，请重新登录', { type: 'error' })
+          System.er(msg, { type: 'error' })
           sconfig.logout(true)
+          break
+        case HttpCode.NETWORK_ERROR:
+          System.er('网络异常，请稍后再试', { type: 'error' })
           break
         case HttpCode.REQUEST_TIMEOUT:
           System.er('请求超时，请稍后再试', { type: 'error' })

@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import sapp from '@/sstore/sapp'
 import System from '@/utils/System'
-import { CircleClose, ArrowDown, Setting, Hide, View, CopyDocument } from '@element-plus/icons-vue'
+import { CircleClose, ArrowDown, Setting, Hide, View, CopyDocument, CaretBottom } from '@element-plus/icons-vue'
 import type { ConfProps } from './index.vue'
-import { onMounted } from 'vue';
 
 const { conf } = defineProps<ConfProps>()
 
-onMounted(() => {
-  conf.list.getData()
-})
+conf.list.getData()
 </script>
 
 <template>
@@ -25,72 +22,50 @@ onMounted(() => {
     <el-icon class="cursor-pointer" size="26" color="#A2A2A2" @click="conf.showTips = false"><CircleClose /></el-icon>
   </div>
   <div class="container">
-    <div class="search">
-      <div class="btn">
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button style="height: 100%" type="primary" @click="conf.drawer.open('add')">添加数据库</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>root密码</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem" @click="System.router.push('/database/remote')">
-              <span>远程数据库</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <span>phpMyAdmin</span>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <el-dropdown>
-                <span class="el-dropdown-link">
-                  高级设置
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>修改默认页面</el-dropdown-item>
-                    <el-dropdown-item>默认站点</el-dropdown-item>
-                    <el-dropdown-item>PHP命令行版本</el-dropdown-item>
-                    <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
-                    <el-dropdown-item>TLS设置</el-dropdown-item>
-                    <el-dropdown-item>全局设置</el-dropdown-item>
-                    <el-dropdown-item>关联数据库</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem" style="cursor: pointer">
-              <span style="font-size: 16px; margin-right: 8px">nignx</span>
-              <v-s-icon name="triangle" size="16" style="transform: rotate(-90deg)" />
-            </div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">
-              <el-dropdown>
-                <span class="el-dropdown-link">
-                  全部
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>分类1</el-dropdown-item>
-                    <el-dropdown-item>分类2</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </el-col>
-        </el-row>
-      </div>
+    <div class="tool-bar">
+      <el-space class="btn-group" :size="14">
+        <el-button type="primary" @click="conf.drawer.open('add')">添加数据库</el-button>
+        <!-- <el-button type="primary">root密码</el-button> -->
+        <el-button type="primary" @click="System.router.push('/database/remote')">远程数据库</el-button>
+        <!-- <el-button type="primary">phpMyAdmin</el-button>
+        <el-dropdown>
+          <el-button type="primary">
+            <span class="el-dropdown-link">
+              高级设置
+              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </span>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>修改默认页面</el-dropdown-item>
+              <el-dropdown-item>默认站点</el-dropdown-item>
+              <el-dropdown-item>PHP命令行版本</el-dropdown-item>
+              <el-dropdown-item>HTTPS防窜站</el-dropdown-item>
+              <el-dropdown-item>TLS设置</el-dropdown-item>
+              <el-dropdown-item>全局设置</el-dropdown-item>
+              <el-dropdown-item>关联数据库</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-button type="primary">
+          <span style="font-size: 14px; margin-right: 8px">nignx</span>
+          <el-icon><CaretBottom /></el-icon>
+        </el-button>
+        <el-dropdown>
+          <el-button type="primary">
+            <span class="el-dropdown-link">
+              全部
+              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </span>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>分类1</el-dropdown-item>
+              <el-dropdown-item>分类2</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown> -->
+      </el-space>
       <div class="demo-form-inline">
         <search-input
           v-model="conf.list.params.name"

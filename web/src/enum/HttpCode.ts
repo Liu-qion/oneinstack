@@ -5,6 +5,11 @@ export enum HttpCode {
   LOGIN_EXPIRED = 401,
 
   /**
+   * 网络异常
+   */
+  NETWORK_ERROR = 500,
+
+  /**
    * 请求超时
    */
   REQUEST_TIMEOUT = 504

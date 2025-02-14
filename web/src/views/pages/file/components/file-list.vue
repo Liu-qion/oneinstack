@@ -206,72 +206,58 @@ defineExpose({
       </div>
       <el-space :size="42">
         <el-link @click.stop="conf.handleInputPath">搜索文件/目录</el-link>
-        <el-checkbox label="包含子目录" size="large" />
-        <div class="flex items-center" style="gap: 14px">
-          <div class="refresh-btn" @click="conf.refresh">
-            <el-icon size="20"><Refresh /></el-icon>
-          </div>
-          <div class="search-btn" @click="conf.handleInputPathConfirm">
-            <el-icon size="18"><Search /></el-icon>
-          </div>
+        <!-- <el-checkbox label="包含子目录" size="large" /> -->
+        <div class="flex items-center">
+          <el-button class="refresh-btn" type="primary" :icon="Refresh" @click="conf.refresh" />
+          <el-button class="search-btn" type="primary" :icon="Search" @click="conf.handleInputPathConfirm" />
         </div>
       </el-space>
     </div>
-    <div class="search">
-      <div class="btn">
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-dropdown>
-              <div class="btnItem">
-                上传/下载
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="conf.upload.handleOpenDialog">上传文件/文件夹</el-dropdown-item>
-                  <el-dropdown-item @click="conf.fileDialog.open('linkDownload')">URL链接下载</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-col>
-          <el-col :span="1.5">
-            <el-dropdown>
-              <div class="btnItem">
-                新建
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="conf.handleOpenDrawer('create', 'file')">
-                    <div class="flex items-center" style="gap: 10px">
-                      <v-s-icon name="txt" size="22" />
-                      <span>文件</span>
-                    </div>
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="conf.handleOpenDrawer('create', 'dir')">
-                    <div class="flex items-center" style="gap: 10px">
-                      <v-s-icon name="folder" size="22" />
-                      <span>文件夹</span>
-                    </div>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">终端</div>
-          </el-col>
-          <el-col :span="1.5">
-            <div class="btnItem">/（根目录）29.47GB</div>
-          </el-col>
-        </el-row>
-      </div>
-      <div class="demo-form-inline">
-        <div class="btnItem">
+    <div class="tool-bar">
+      <el-space :size="14" class="btn-group">
+        <el-dropdown>
+          <el-button type="primary">
+            上传/下载
+            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="conf.upload.handleOpenDialog">上传文件/文件夹</el-dropdown-item>
+              <el-dropdown-item @click="conf.fileDialog.open('linkDownload')">URL链接下载</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-dropdown>
+          <el-button type="primary">
+            新建
+            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="conf.handleOpenDrawer('create', 'file')">
+                <div class="flex items-center" style="gap: 10px">
+                  <v-s-icon name="txt" size="22" />
+                  <span>文件</span>
+                </div>
+              </el-dropdown-item>
+              <el-dropdown-item @click="conf.handleOpenDrawer('create', 'dir')">
+                <div class="flex items-center" style="gap: 10px">
+                  <v-s-icon name="folder" size="22" />
+                  <span>文件夹</span>
+                </div>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <!-- <el-button type="primary">终端</el-button>
+        <el-button type="primary">/（根目录）29.47GB</el-button> -->
+      </el-space>
+      <!-- <div class="demo-form-inline">
+        <el-button type="primary">
           <span class="mr-1">回收站</span>
           <el-icon size="16"><Delete /></el-icon>
-        </div>
-      </div>
+        </el-button>
+      </div> -->
     </div>
     <div class="box2">
       <custom-table :data="conf.fileList" :columns="conf.columns" :loading="conf.loading">
@@ -388,14 +374,5 @@ defineExpose({
 .search-btn {
   width: 36px;
   height: 36px;
-  border: 1px solid rgb(var(--border-color-gray));
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: rgb(var(--bg-hover-color));
-  }
 }
 </style>

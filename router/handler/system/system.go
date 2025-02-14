@@ -96,3 +96,17 @@ func UpdatePort(c *gin.Context) {
 	}
 	core.HandleSuccess(c, nil)
 }
+
+func UpdateSystemTitle(c *gin.Context) {
+	param := input.UpdateSystemTitleRequest{}
+	if err := c.ShouldBindJSON(&param); err != nil {
+		core.HandleError(c, http.StatusBadRequest, err, nil)
+		return
+	}
+	err := system.UpdateSystemTitle(param.Title)
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, nil)
+}

@@ -388,3 +388,14 @@ func ResetPassword(user input.ResetPasswordRequest) error {
 	}
 	return nil
 }
+
+func UpdateSystemTitle(title string) error {
+	if title == "" {
+		return fmt.Errorf(" Title not provided")
+	}
+	tx := app.DB().Model(&models.System{}).Update("title", title)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
+}

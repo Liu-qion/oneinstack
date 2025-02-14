@@ -46,6 +46,7 @@ const handleSelectVersion = (v: string, item: any) => {
 }
 
 const handleClickInstall = (item: any) => {
+  if (!installForm.value.version) return handleSelectVersion(item.versions[0], item)
   if (!item.params) return handleInstall()
   const config = JSON.parse(item.params)
   installForm.items = (config as []).map<FormItem>((item: any) => ({

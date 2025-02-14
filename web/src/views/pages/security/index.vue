@@ -10,35 +10,37 @@ const conf = reactive({
       name: '系统防火墙',
       index: 0,
       component: Firewall
-    },
-    {
-      name: 'SSH管理',
-      index: 1
-    },
-    {
-      name: '安全检测',
-      index: 2
-    },
-    {
-      name: '违规词检测',
-      index: 3
-    },
-    {
-      name: 'PHP网站安全',
-      index: 4
-    },
-    {
-      name: '入侵防御',
-      index: 5
-    },
-    {
-      name: '系统加固',
-      index: 6
     }
+    // ,
+    // {
+    //   name: 'SSH管理',
+    //   index: 1
+    // },
+    // {
+    //   name: '安全检测',
+    //   index: 2
+    // },
+    // {
+    //   name: '违规词检测',
+    //   index: 3
+    // },
+    // {
+    //   name: 'PHP网站安全',
+    //   index: 4
+    // },
+    // {
+    //   name: '入侵防御',
+    //   index: 5
+    // },
+    // {
+    //   name: '系统加固',
+    //   index: 6
+    // }
   ]),
   clickActive: (item: any) => {
     conf.activeIndex = item.index
   }
+  
 })
 </script>
 

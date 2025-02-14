@@ -60,55 +60,98 @@ func AddUfwRule(param *models.IptablesRule) error {
 
 // 删除UFW规则函数
 func DeleteUfwRule(id int64) error {
+	// 从数据库查询规则
 	rule := &models.IptablesRule{}
 	tx := app.DB().Where("id = ?", id).First(rule)
 	if tx.Error != nil {
-		return tx.Error
-	}
-	validProtocols := []string{"tcp", "udp", "icmp"}
-	if !contains(validProtocols, rule.Protocol) {
-		return fmt.Errorf("invalid protocol: %s. Valid options are: tcp, udp, icmp", rule.Protocol)
+		return fmt.Errorf("failed to find rule with ID %d: %v", id, tx.Error)
 	}
 
-	ipList := strings.Split(rule.IPs, ",")
-	if len(ipList) == 0 || ipList[0] == "" {
+	// 验证协议类型
+	validProtocols := []string{"tcp", "udp", "icmp"}
+	if !contains(validProtocols, rule.Protocol) {
+		return fmt.Errorf(
+			"invalid protocol: %s. Valid options are: tcp, udp, icmp",
+			rule.Protocol,
+		)
+	}
+
+	// 验证策略类型
+	validStrategies := []string{"allow", "deny"}
+	if !contains(validStrategies, rule.Strategy) {
+		return fmt.Errorf(
+			"invalid strategy: %s. Valid options are: allow, deny",
+			rule.Strategy,
+		)
+	}
+
+	// 处理 IP 列表（过滤空值并设置默认值）
+	ipList := filterEmpty(strings.Split(rule.IPs, ","))
+	if len(ipList) == 0 {
 		ipList = []string{"any"}
 	}
 
-	portList := strings.Split(rule.Ports, ",")
-	if len(portList) == 0 || portList[0] == "" {
+	// 处理端口列表（过滤空值并设置默认值）
+	portList := filterEmpty(strings.Split(rule.Ports, ","))
+	if len(portList) == 0 {
 		portList = []string{"0"}
 	}
 
+	// 检查 ICMP 协议的端口合法性
+	if rule.Protocol == "icmp" {
+		for _, port := range portList {
+			if port != "0" {
+				return fmt.Errorf(
+					"invalid port '%s' for icmp protocol (must be 0)",
+					port,
+				)
+			}
+		}
+	}
+
+	// 遍历所有 IP 和端口组合，生成删除命令
 	for _, ip := range ipList {
 		for _, port := range portList {
 			var cmdArgs []string
-			cmdArgs = append(cmdArgs, "delete", "allow", rule.Direction) // 关键变化：添加delete参数
+			cmdArgs = append(cmdArgs, "delete", rule.Strategy, rule.Direction) // 使用 Strategy 字段
 
-			if rule.Direction == "in" {
+			// 根据方向设置地址参数
+			switch rule.Direction {
+			case "in":
 				cmdArgs = append(cmdArgs, "from", ip, "to", "any")
-			} else if rule.Direction == "out" {
+			case "out":
 				cmdArgs = append(cmdArgs, "to", ip)
-			} else {
-				return fmt.Errorf("invalid direction: %s", rule.Direction)
+			default:
+				return fmt.Errorf(
+					"invalid direction: %s. Valid options are: in, out",
+					rule.Direction,
+				)
 			}
 
-			if port != "0" {
+			// 处理端口参数（非 ICMP 且端口非 0 时添加）
+			if rule.Protocol != "icmp" && port != "0" {
 				cmdArgs = append(cmdArgs, "port", port)
 			}
 
+			// 添加协议参数
 			cmdArgs = append(cmdArgs, "proto", rule.Protocol)
 
+			// 执行 UFW 命令
 			cmd := exec.Command("ufw", cmdArgs...)
-			if output, err := cmd.CombinedOutput(); err != nil {
-				return fmt.Errorf("failed to delete ufw rule: %v\nCommand: %s\nOutput: %s",
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return fmt.Errorf(
+					"failed to delete ufw rule: %v\nCommand: ufw %s\nOutput: %s",
 					err,
 					strings.Join(cmdArgs, " "),
-					string(output))
+					string(output),
+				)
 			}
+
 			fmt.Printf("UFW rule deleted: ufw %s\n", strings.Join(cmdArgs, " "))
 		}
 	}
+
 	return nil
 }
 
@@ -134,50 +177,82 @@ func UpdateUfwRule(new *models.IptablesRule) error {
 }
 
 func addUfwRule(rule *models.IptablesRule) error {
+	// 验证协议类型
 	validProtocols := []string{"tcp", "udp", "icmp"}
 	if !contains(validProtocols, rule.Protocol) {
-		return fmt.Errorf("invalid protocol: %s. Valid options are: tcp, udp, icmp", rule.Protocol)
+		return fmt.Errorf(
+			"invalid protocol: %s. Valid options are: tcp, udp, icmp",
+			rule.Protocol,
+		)
 	}
 
-	ipList := strings.Split(rule.IPs, ",")
-	if len(ipList) == 0 || ipList[0] == "" {
+	// 验证策略类型
+	validStrategies := []string{"allow", "deny"}
+	if !contains(validStrategies, rule.Strategy) {
+		return fmt.Errorf(
+			"invalid strategy: %s. Valid options are: allow, deny",
+			rule.Strategy,
+		)
+	}
+
+	// 处理 IP 列表（过滤空值并设置默认值）
+	ipList := filterEmpty(strings.Split(rule.IPs, ","))
+	if len(ipList) == 0 {
 		ipList = []string{"any"}
 	}
 
-	portList := strings.Split(rule.Ports, ",")
-	if len(portList) == 0 || portList[0] == "" {
+	// 处理端口列表（过滤空值并设置默认值）
+	portList := filterEmpty(strings.Split(rule.Ports, ","))
+	if len(portList) == 0 {
 		portList = []string{"0"}
 	}
 
+	// 检查 ICMP 协议的端口合法性
+	if rule.Protocol == "icmp" {
+		for _, port := range portList {
+			if port != "0" {
+				return fmt.Errorf("icmp protocol does not support port '%s'", port)
+			}
+		}
+	}
+
+	// 遍历所有 IP 和端口组合，生成规则
 	for _, ip := range ipList {
 		for _, port := range portList {
 			var cmdArgs []string
-			cmdArgs = append(cmdArgs, "allow", rule.Direction)
+			cmdArgs = append(cmdArgs, rule.Strategy, rule.Direction)
 
 			// 根据方向设置地址参数
-			if rule.Direction == "in" {
+			switch rule.Direction {
+			case "in":
 				cmdArgs = append(cmdArgs, "from", ip, "to", "any")
-			} else if rule.Direction == "out" {
+			case "out":
 				cmdArgs = append(cmdArgs, "to", ip)
-			} else {
-				return fmt.Errorf("invalid direction: %s", rule.Direction)
+			default:
+				return fmt.Errorf(
+					"invalid direction: %s. Valid options are: in, out",
+					rule.Direction,
+				)
 			}
 
-			// 处理端口参数（0表示所有端口）
-			if port != "0" {
+			// 处理端口（非 ICMP 且端口非 0 时添加端口参数）
+			if rule.Protocol != "icmp" && port != "0" {
 				cmdArgs = append(cmdArgs, "port", port)
 			}
 
 			// 添加协议参数
 			cmdArgs = append(cmdArgs, "proto", rule.Protocol)
 
-			// 执行UFW命令
+			// 执行 UFW 命令
 			cmd := exec.Command("ufw", cmdArgs...)
-			if output, err := cmd.CombinedOutput(); err != nil {
-				return fmt.Errorf("failed to add ufw rule: %v\nCommand: %s\nOutput: %s",
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				return fmt.Errorf(
+					"failed to add ufw rule: %v\nCommand: ufw %s\nOutput: %s",
 					err,
 					strings.Join(cmdArgs, " "),
-					string(output))
+					string(output),
+				)
 			}
 
 			fmt.Printf("UFW rule added: ufw %s\n", strings.Join(cmdArgs, " "))
@@ -283,10 +358,22 @@ func deletePingBlockRule() error {
 	return nil
 }
 
-// contains 检查元素是否在列表中
-func contains(list []string, item string) bool {
-	for _, a := range list {
-		if a == item {
+// 辅助函数：过滤空字符串
+func filterEmpty(s []string) []string {
+	var filtered []string
+	for _, str := range s {
+		str = strings.TrimSpace(str)
+		if str != "" {
+			filtered = append(filtered, str)
+		}
+	}
+	return filtered
+}
+
+// 辅助函数：检查字符串是否在切片中
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
 			return true
 		}
 	}

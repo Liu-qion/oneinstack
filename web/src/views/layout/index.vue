@@ -100,8 +100,8 @@ const conf = reactive({
       path: '/terminal',
       icon: 'terminal',
       activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
+        light: ['#8B8B8B', '#eab170'],
+        dark: ['#ffffff', '#eab170']
       }
     },
     {
@@ -109,8 +109,8 @@ const conf = reactive({
       path: '/task',
       icon: 'task',
       activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
+        light: ['#8B8B8B', '#eab170'],
+        dark: ['#ffffff', '#eab170']
       }
     },
     {
@@ -118,8 +118,8 @@ const conf = reactive({
       path: '/software',
       icon: 'software',
       activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
+        light: ['#8B8B8B', '#eab170'],
+        dark: ['#ffffff', '#eab170']
       }
     },
     {
@@ -127,8 +127,8 @@ const conf = reactive({
       path: '/setting',
       icon: 'setting',
       activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
+        light: ['#8B8B8B', '#eab170'],
+        dark: ['#ffffff', '#eab170']
       }
     },
     {
@@ -136,8 +136,8 @@ const conf = reactive({
       path: '',
       icon: 'exit',
       activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
+        light: ['#8B8B8B', '#eab170'],
+        dark: ['#ffffff', '#eab170']
       },
       event: async () => {
         ElMessageBox.confirm('退出面板登录，是否继续？', '退出登录', {
@@ -188,7 +188,7 @@ const conf = reactive({
                           <v-s-icon
                             :name="item.icon"
                             :color="
-                              route.path.includes(item.path)
+                              item.path && route.path.includes(item.path)
                                 ? item.activeColor[sapp.theme]
                                 : conf.defaultColor[sapp.theme]
                             "
@@ -205,7 +205,7 @@ const conf = reactive({
                           <v-s-icon
                             :name="child.icon"
                             :color="
-                              route.path.includes(child.path)
+                              child.path && route.path.includes(child.path)
                                 ? child.activeColor[sapp.theme]
                                 : conf.defaultColor[sapp.theme]
                             "
@@ -218,7 +218,7 @@ const conf = reactive({
                         <v-s-icon
                           :name="item.icon"
                           :color="
-                            route.path.includes(item.path)
+                            item.path && route.path.includes(item.path)
                               ? item.activeColor[sapp.theme]
                               : conf.defaultColor[sapp.theme]
                           "

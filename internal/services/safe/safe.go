@@ -156,7 +156,10 @@ func DeleteUfwRule(id int64) error {
 			fmt.Printf("UFW rule deleted: ufw %s\n", strings.Join(cmdArgs, " "))
 		}
 	}
-
+	tx = app.DB().Where("id = ?", id).Delete(&models.IptablesRule{})
+	if tx.Error != nil {
+		return tx.Error
+	}
 	return nil
 }
 
@@ -177,6 +180,10 @@ func UpdateUfwRule(new *models.IptablesRule) error {
 		// 尝试恢复旧规则
 		_ = addUfwRule(oldRule)
 		return fmt.Errorf("failed to apply new rule: %v (rolled back)", err)
+	}
+	tx = app.DB().Model(&models.IptablesRule{}).Where("id = ?", new.ID).Updates(new)
+	if tx.Error != nil {
+		return tx.Error
 	}
 	return nil
 }

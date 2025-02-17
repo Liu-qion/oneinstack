@@ -414,11 +414,10 @@ func ToggleICMP() error {
 // 重新加载 UFW 配置
 func reloadUFW() error {
 	cmd := exec.Command("ufw", "reload")
-	output, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("执行命令失败: %v", err)
 	}
-	fmt.Println("重新加载 UFW 配置", string(output))
 	return nil
 }
 

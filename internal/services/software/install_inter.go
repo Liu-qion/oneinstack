@@ -116,7 +116,7 @@ func (ps InstallOP) executeShScriptLocal(fn string, sy bool) (string, error) {
 		}
 		return "", nil
 	case "java":
-		return ps.executeShScript(fn, sy)
+		return ps.executeShScript(fn, sy, "-v", ps.BashParams.Version)
 	case "phpmyadmin":
 		return ps.executeShScript(fn, sy)
 	default:
@@ -163,7 +163,7 @@ func (ps InstallOP) getScriptLocal() (string, error) {
 	case "php":
 		bash = php
 	case "java":
-		bash = `echo 123`
+		bash = java
 	default:
 		return "", fmt.Errorf("未知的软件类型")
 	}
@@ -1205,6 +1205,101 @@ configure_nginx
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
 echo "phpMyAdmin 已成功安装！您可以通过以下地址访问："
 echo "http://$IP_ADDRESS:8080/phpmyadmin"
+
+`
+
+var java = `
+#!/bin/bash
+
+# 默认 JDK 版本
+DEFAULT_JAVA_VERSION="11"
+
+# 检查当前操作系统类型
+OS=$(lsb_release -i | awk '{print $3}')
+
+# 解析命令行参数
+while getopts "v:" opt; do
+  case ${opt} in
+    v)
+      JAVA_VERSION=$OPTARG
+      ;;
+    *)
+      echo "Usage: $0 [-v version]"
+      exit 1
+      ;;
+  esac
+done
+
+# 如果没有指定版本，使用默认版本
+JAVA_VERSION=${JAVA_VERSION:-$DEFAULT_JAVA_VERSION}
+
+# 设置 Java 安装路径（可以修改为你想要的路径）
+JAVA_HOME_DIR="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64"
+
+# 安装 Java 的函数
+install_java() {
+    echo "开始安装 OpenJDK ${JAVA_VERSION} ..."
+    case $OS in
+        "Ubuntu"|"Debian")
+            sudo apt update
+            sudo apt install -y openjdk-${JAVA_VERSION}-jdk
+            ;;
+        "CentOS"|"RedHatEnterpriseServer")
+            sudo yum install -y java-${JAVA_VERSION}-openjdk
+            ;;
+        "Fedora")
+            sudo dnf install -y java-${JAVA_VERSION}-openjdk
+            ;;
+        *)
+            echo "不支持的操作系统: $OS"
+            exit 1
+            ;;
+    esac
+}
+
+# 设置 JAVA 环境变量
+set_java_env() {
+    echo "设置 JAVA 环境变量 ..."
+    
+    # 检查 JAVA_HOME 是否已设置
+    if ! grep -q "JAVA_HOME" /etc/profile.d/java.sh; then
+        echo "JAVA_HOME 未设置，正在设置 ..."
+        echo "export JAVA_HOME=$JAVA_HOME_DIR" | sudo tee /etc/profile.d/java.sh
+        echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile.d/java.sh
+        sudo chmod +x /etc/profile.d/java.sh
+    else
+        echo "JAVA_HOME 已经设置，跳过设置步骤"
+    fi
+    
+    # 加载新的配置
+    source /etc/profile.d/java.sh
+}
+
+# 验证 Java 安装是否成功
+verify_java_install() {
+    echo "验证 Java 安装 ..."
+    java -version
+    if [ $? -ne 0 ]; then
+        echo "Java 安装失败，请检查日志！"
+        exit 1
+    else
+        echo "Java 安装成功！"
+    fi
+}
+
+# 主程序
+if ! java -version &>/dev/null; then
+    # 如果 Java 未安装，则进行安装
+    install_java
+else
+    echo "Java 已安装，跳过安装步骤"
+fi
+
+# 设置环境变量
+set_java_env
+
+# 验证安装
+verify_java_install
 
 `
 

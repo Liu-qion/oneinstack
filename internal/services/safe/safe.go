@@ -1,12 +1,14 @@
 package safe
 
 import (
+	"bufio"
 	"fmt"
 	"oneinstack/app"
 	"oneinstack/internal/models"
 	"oneinstack/internal/services"
 	"oneinstack/router/input"
 	"oneinstack/router/output"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -24,7 +26,10 @@ func GetUfwStatus() (*output.IptablesStatus, error) {
 	enabled := strings.Contains(out.String(), "Status: active")
 
 	// 检查是否有阻止 ICMP 请求的规则
-	pingBlocked := strings.Contains(out.String(), "icmp") && strings.Contains(out.String(), "DENY")
+	pingBlocked, err := pingStatus()
+	if err != nil {
+		return &output.IptablesStatus{Enabled: enabled, PingBlocked: false}, err
+	}
 
 	return &output.IptablesStatus{Enabled: enabled, PingBlocked: pingBlocked}, nil
 }
@@ -297,6 +302,7 @@ func isPingBlocked() (bool, error) {
 	// 查询现有的 ufw 状态，检查是否有阻止 ICMP 请求的规则
 	cmd := exec.Command("ufw", "status", "verbose")
 	output, err := cmd.CombinedOutput()
+	fmt.Println("检查是否已经禁用 ping", string(output))
 	if err != nil {
 		return false, fmt.Errorf("failed to check ufw: %v, output: %s", err, string(output))
 	}
@@ -309,52 +315,110 @@ func isPingBlocked() (bool, error) {
 	return false, nil
 }
 
-// 禁止 ping 请求（ICMP）
-func BlockPing() error {
-	// 检查是否已经禁用 ping
-	isBlocked, err := isPingBlocked()
+func pingStatus() (bool, error) {
+	// 打开 UFW 配置文件
+	filePath := "/etc/ufw/before.rules"
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
 	if err != nil {
-		return err
+		return false, fmt.Errorf("打开配置文件失败: %v", err)
 	}
-	// 如果已经禁用 ping，则删除现有规则
-	if isBlocked {
-		return deletePingBlockRule()
+	defer file.Close()
+
+	// 读取文件内容
+	var lines []string
+	var icmpLineIndex int
+	var icmpAllowed bool
+	scanner := bufio.NewScanner(file)
+	for i := 0; scanner.Scan(); i++ {
+		line := scanner.Text()
+		lines = append(lines, line)
+		if strings.Contains(line, "-A ufw-before-input -p icmp --icmp-type echo-request") {
+			icmpLineIndex = i
+			icmpAllowed = strings.Contains(line, "ACCEPT")
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return false, fmt.Errorf("读取配置文件失败: %v", err)
 	}
 
-	// 创建阻止 ICMP 请求的 ufw 规则
-	cmd := exec.Command("ufw", "deny", "icmp")
-	output, err := cmd.CombinedOutput()
+	// 如果未找到 ICMP 相关配置，返回错误
+	if icmpLineIndex == -1 {
+		return false, fmt.Errorf("未找到 ICMP 相关配置")
+	}
+	return icmpAllowed, nil
+}
+
+// 检查并切换 ICMP 配置
+func ToggleICMP() error {
+	// 打开 UFW 配置文件
+	filePath := "/etc/ufw/before.rules"
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to block ping: %v, output: %s", err, string(output))
+		return fmt.Errorf("打开配置文件失败: %v", err)
+	}
+	defer file.Close()
+
+	// 读取文件内容
+	var lines []string
+	var icmpLineIndex int
+	var icmpAllowed bool
+	scanner := bufio.NewScanner(file)
+	for i := 0; scanner.Scan(); i++ {
+		line := scanner.Text()
+		lines = append(lines, line)
+		if strings.Contains(line, "-A ufw-before-input -p icmp --icmp-type echo-request") {
+			icmpLineIndex = i
+			icmpAllowed = strings.Contains(line, "ACCEPT")
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("读取配置文件失败: %v", err)
+	}
+
+	// 如果未找到 ICMP 相关配置，返回错误
+	if icmpLineIndex == -1 {
+		return fmt.Errorf("未找到 ICMP 相关配置")
+	}
+
+	// 切换 ICMP 配置
+	if icmpAllowed {
+		lines[icmpLineIndex] = strings.Replace(lines[icmpLineIndex], "ACCEPT", "DROP", 1)
+	} else {
+		lines[icmpLineIndex] = strings.Replace(lines[icmpLineIndex], "DROP", "ACCEPT", 1)
+	}
+
+	// 重新打开文件以写入修改
+	file, err = os.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("重新打开配置文件失败: %v", err)
+	}
+	defer file.Close()
+
+	// 写入修改后的内容
+	for _, line := range lines {
+		_, err := file.WriteString(line + "\n")
+		if err != nil {
+			return fmt.Errorf("写入配置文件失败: %v", err)
+		}
+	}
+
+	// 重新加载 UFW 配置
+	err = reloadUFW()
+	if err != nil {
+		return fmt.Errorf("重新加载 UFW 配置失败: %v", err)
 	}
 
 	return nil
 }
 
-// 删除禁ping的规则
-func deletePingBlockRule() error {
-	// 列出当前的 ufw 规则并带有详细信息
-	cmd := exec.Command("ufw", "status", "verbose")
+// 重新加载 UFW 配置
+func reloadUFW() error {
+	cmd := exec.Command("ufw", "reload")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to list ufw rules: %v, output: %s", err, string(output))
+		return fmt.Errorf("执行命令失败: %v", err)
 	}
-
-	// 查找禁ping规则
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		// 查找包含禁ping的规则（icmp）
-		if strings.Contains(line, "icmp") && strings.Contains(line, "DENY") {
-			// 删除禁ping规则
-			cmd := exec.Command("ufw", "delete", "deny", "icmp")
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				return fmt.Errorf("failed to delete block ping rule: %v, output: %s", err, string(output))
-			}
-			break
-		}
-	}
-
+	fmt.Println("重新加载 UFW 配置", string(output))
 	return nil
 }
 

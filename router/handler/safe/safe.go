@@ -85,7 +85,7 @@ func StopFirewall(c *gin.Context) {
 }
 
 func BlockPing(c *gin.Context) {
-	err := safe.BlockPing()
+	err := safe.ToggleICMP()
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

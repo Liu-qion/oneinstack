@@ -276,43 +276,18 @@ func ToggleUfw() error {
 	if err != nil {
 		return fmt.Errorf("failed to check ufw status: %v, output: %s", err, string(output))
 	}
-
+	action := "enable"
 	// 判断 UFW 当前状态，查找 "Status" 字段
 	if strings.Contains(string(output), "Status: active") {
-		// 如果当前是启用的，则禁用它
-		cmdDisable := exec.Command("ufw", "disable")
-		disableOutput, err := cmdDisable.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("failed to disable ufw: %v, output: %s", err, string(disableOutput))
-		}
-	} else {
-		// 如果当前是禁用的，则启用它
-		cmdEnable := exec.Command("ufw", "enable")
-		enableOutput, err := cmdEnable.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("failed to enable ufw: %v, output: %s", err, string(enableOutput))
-		}
+		action = "disable"
 	}
 
-	return nil
-}
-
-// 检查是否已经禁用 ping（ICMP 请求）
-func isPingBlocked() (bool, error) {
-	// 查询现有的 ufw 状态，检查是否有阻止 ICMP 请求的规则
-	cmd := exec.Command("ufw", "status", "verbose")
-	output, err := cmd.CombinedOutput()
-	fmt.Println("检查是否已经禁用 ping", string(output))
+	cmd := exec.Command("ufw", action)
+	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to check ufw: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to %s ufw: %v, output: %s", action, err, string(output))
 	}
-
-	// 检查是否存在阻止 ICMP 请求的规则
-	if strings.Contains(string(output), "icmp") && strings.Contains(string(output), "DENY") {
-		return true, nil
-	}
-
-	return false, nil
+	return nil
 }
 
 func pingStatus() (bool, error) {

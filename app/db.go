@@ -72,6 +72,10 @@ func createTables() error {
 	if err != nil {
 		return err
 	}
+	err = db.AutoMigrate(&models.Cron{})
+	if err != nil {
+		return err
+	}
 	err = initSoftware()
 	if err != nil {
 		return err

@@ -1,9 +1,11 @@
 package web
 
 import (
+	"oneinstack/router/handler/cron"
 	"oneinstack/router/handler/ftp"
 	"oneinstack/router/handler/safe"
 	"oneinstack/router/handler/software"
+	"oneinstack/router/handler/ssh"
 	"oneinstack/router/handler/storage"
 	"oneinstack/router/handler/system"
 	"oneinstack/router/handler/user"
@@ -108,6 +110,23 @@ func SetupRouter() *gin.Engine {
 		safeg.POST("/del", safe.DeleteFirewallRule)
 		safeg.POST("/stop", safe.StopFirewall)
 		safeg.POST("/blockping", safe.BlockPing)
+	}
+
+	sshg := g.Group("/ssh")
+	sys.Use(middleware.AuthMiddleware())
+	{
+		sshg.GET("/open", ssh.OpenSSH)
+	}
+
+	crong := g.Group("/cron")
+	sys.Use(middleware.AuthMiddleware())
+	{
+		crong.POST("/list", cron.GetCronList)
+		crong.POST("/add", cron.AddCron)
+		crong.POST("/update", cron.UpdateCron)
+		crong.POST("/del", cron.DeleteCron)
+		crong.POST("/disable", cron.DisableCron)
+		crong.POST("/enable", cron.EnableCron)
 	}
 
 	return r

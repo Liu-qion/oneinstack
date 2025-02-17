@@ -106,5 +106,22 @@ export const Api = {
   /** 获取redis列表 */
   getRedisList: (obj: any) => {
     return http.post('/storage/rklist', obj)
+  },
+  /** 获取防火墙信息 */
+  getFirewallInfo: (obj: any) => {
+    return http.get('/safe/info', obj)
+  },
+  /** 获取防火墙规则 */
+  getFirewallRule: (obj: any) => {
+    return http.post('/safe/rules', obj)
+  },
+  /** 启动/禁用ping */
+  openPing: (obj: any) => {
+    return http.post('/safe/addrule', obj)
+  },
+  /** 启动/禁用防火墙 */
+  stopFirewall: (obj: any) => {
+    return http.post('/safe/stop', obj)
   }
 }
+  

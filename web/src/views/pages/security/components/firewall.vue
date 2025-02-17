@@ -1,40 +1,45 @@
 <script setup lang="ts">
 import SearchInput from '@/components/search-input.vue'
 import { ref, reactive } from 'vue'
+import { Api } from '@/api/Api'
+import { onMounted } from 'vue'
+import Addfirewall from './addfirewall.vue'
+import { ElMessage } from 'element-plus'
+
+
 
 const addRulemodal = ref(false)
 const exportRulemodal = ref(false)
 const keyNum = ref(0)
-const value2 = ref('')
-const formInline = reactive({
-  user: '',
-  region: '',
-  date: ''
-})
+const value1 = ref(false)
+const value2 = ref(false)
 
-const tableData = [
-  {
-    date: 'www.baidu.com',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-02',
-    status: 2,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-04',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-01',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
-  }
-]
+
+
+const tableData = ref([
+  // {
+  //   date: 'www.baidu.com',
+  //   status: 1,
+  //   address: 'No. 189, Grove St, Los Angeles'
+  // },
+  // {
+  //   date: '2016-05-02',
+  //   status: 2,
+  //   address: 'No. 189, Grove St, Los Angeles'
+  // },
+  // {
+  //   date: '2016-05-04',
+  //   status: 1,
+  //   address: 'No. 189, Grove St, Los Angeles'
+  // },
+  // {
+  //   date: '2016-05-01',
+  //   status: 1,
+  //   address: 'No. 189, Grove St, Los Angeles'
+  // }
+])
 const handleAdd = () => {
+
   addRulemodal.value = true
   keyNum.value++
 }
@@ -45,15 +50,49 @@ const exportClick = () => {
 const oncloseRule = (value: boolean) => {
   addRulemodal.value = value
   keyNum.value++
+  getData()
 }
 const oncloseExport = (value: boolean) => {
   exportRulemodal.value = value
   keyNum.value++
 }
+const handleAllDirection = (value: string) => {
+  
+}
+const handleOpenPing =async (value: string) => {
+  if(value == 'ping'){
+    const { data: res } = await Api.openPing('')
+    if (res.code !=0){
+      ElMessage.error(res.msg)
+    }
+  }else{
+    const { data1: res } = await Api.stopFirewall('')
+    if (res.code !=0){
+      ElMessage.error(res.msg)
+    }
+  }
+
+}
+
 const getList = () => {}
 const onSubmit = () => {
   console.log('submit!')
 }
+const getData = async () => {
+  const { data: res } = await Api.getFirewallRule('')
+  tableData.value = res.data
+  console.log(res,'res')
+}
+const getFirewallInfo = async () => {
+  const { data: res } = await Api.getFirewallInfo({})
+
+  value1.value =res.info.enabled ? res.info.enabled : false
+  value2.value =res.info.pingBlocked ? res.info.pingBlocked : false
+}
+onMounted(() => {
+  getData()
+  getFirewallInfo()
+})
 </script>
 
 <template>
@@ -62,11 +101,11 @@ const onSubmit = () => {
       <div class="flex justify-between items-center">
         <div>
           <span>防火墙开关</span>
-          <el-switch v-model="value2" class="ml-2" />
+          <el-switch v-model="value1" class="ml-2"  @change="handleOpenPing('wall')"/>
         </div>
         <div style="margin-inline: 60px 150px">
           <span>禁ping</span>
-          <el-switch v-model="value2" class="ml-2" />
+          <el-switch v-model="value2" class="ml-2"  @change="handleOpenPing('ping')"/>
         </div>
         <div class="webLog">
           Web日志：
@@ -79,12 +118,12 @@ const onSubmit = () => {
     <div class="tool-bar">
       <el-space class="btn-group">
         <el-button type="primary" @click="handleAdd">添加端口规则</el-button>
-        <el-button type="primary" @click="exportClick">导入规则</el-button>
-        <el-button type="primary" @click="exportClick">导出规则</el-button>
+        <!-- <el-button type="primary" @click="exportClick">导入规则</el-button>
+        <el-button type="primary" @click="exportClick">导出规则</el-button> -->
         <el-button-group>
-          <el-button type="primary">所有方向</el-button>
-          <el-button type="primary">入站</el-button>
-          <el-button type="primary">出站</el-button>
+          <el-button type="primary" @click="handleAllDirection('')">所有方向</el-button>
+          <el-button type="primary"  @click="handleAllDirection('in')" >入站</el-button>
+          <el-button type="primary"  @click="handleAllDirection('out')">出站</el-button>
         </el-button-group>
       </el-space>
       <div class="demo-form-inline">
@@ -127,6 +166,8 @@ const onSubmit = () => {
       </div>
     </div>
   </div>
+
+  <Addfirewall v-model="addRulemodal" @close="oncloseRule" style="padding: 20px;" :key="keyNum" v-if="addRulemodal" />
 </template>
 
 <style scoped lang="less">

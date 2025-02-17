@@ -10,11 +10,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func InitDB(dbPath string) error {
-	fmt.Println("创建db..." + dbPath)
-	d, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	gc := &gorm.Config{}
+	gc.Logger = logger.Default.LogMode(logger.Error)
+	if ENV == "debug" {
+		fmt.Println("创建db..." + dbPath)
+		gc.Logger = logger.Default.LogMode(logger.Info)
+	}
+
+	d, err := gorm.Open(sqlite.Open(dbPath))
 	if err != nil {
 		return err
 	}
@@ -29,7 +36,11 @@ func InitDB(dbPath string) error {
 }
 
 func createTables() error {
-	err := db.AutoMigrate(&models.User{})
+	err := db.AutoMigrate(&models.System{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models.User{})
 	if err != nil {
 		return err
 	}
@@ -376,13 +387,14 @@ func InitSystem() error {
 	r := &models.System{
 		Title: "OneStack",
 	}
-	result := db.First(r)
-	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return result.Error
+	var count int64 = 0
+	tx := DB().Model(models.System{}).Count(&count)
+	if tx.Error != nil {
+		return tx.Error
 	}
-	if r.ID > 0 {
+	if count > 0 {
 		return nil
 	}
-	tx := db.Create(r)
+	tx = DB().Create(r)
 	return tx.Error
 }

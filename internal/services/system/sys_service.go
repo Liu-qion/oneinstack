@@ -318,9 +318,15 @@ func SystemInfo() (map[string]interface{}, error) {
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
+	s := models.System{}
+	tx = app.DB().Model(&s).First(&s)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
 	info := map[string]interface{}{
-		"port": port,
-		"user": u,
+		"port":  port,
+		"user":  u,
+		"title": s.Title,
 	}
 	return info, nil
 }
@@ -366,8 +372,15 @@ func UpdateUser(user models.User) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	u.Password = user.Password
-	u.Username = user.Username
+	if user.Username != "" && user.Password != "" {
+		return fmt.Errorf("Username and Password cannot be empty")
+	}
+	if user.Password != "" {
+		u.Password = user.Password
+	}
+	if user.Username != "" {
+		u.Username = user.Username
+	}
 	tx = app.DB().Updates(u)
 	if tx.Error != nil {
 		return tx.Error
@@ -398,4 +411,13 @@ func UpdateSystemTitle(title string) error {
 		return tx.Error
 	}
 	return nil
+}
+
+func GetInfo() (*models.System, error) {
+	s := models.System{}
+	tx := app.DB().Model(&s).First(&s)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &s, nil
 }

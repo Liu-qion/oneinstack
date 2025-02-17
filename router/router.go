@@ -14,8 +14,9 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
-
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+
 	r.Use(middleware.MidUiHandle)
 	g := r.Group("/v1")
 
@@ -35,6 +36,7 @@ func SetupRouter() *gin.Engine {
 		sys.POST("/updateuser", system.UpdateUser)
 		sys.POST("/resetpassword", system.ResetPassword)
 		sys.POST("/updateport", system.UpdatePort)
+		sys.POST("/updatesystemtitle", system.UpdateSystemTitle)
 
 		//备注相关
 		sys.GET("/remark/:id", system.RemarkList)
@@ -46,6 +48,11 @@ func SetupRouter() *gin.Engine {
 		sys.POST("/dic/add", system.AddDictionary)
 		sys.POST("/dic/update", system.UpdateDictionary)
 		sys.POST("/dic/del", system.DeleteDictionary)
+	}
+
+	sysNoAuth := g.Group("/sys")
+	{
+		sysNoAuth.GET("/getbaseinfo", system.GetInfo)
 	}
 
 	storageg := g.Group("/storage")

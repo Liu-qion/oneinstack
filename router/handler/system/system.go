@@ -110,3 +110,12 @@ func UpdateSystemTitle(c *gin.Context) {
 	}
 	core.HandleSuccess(c, nil)
 }
+
+func GetInfo(c *gin.Context) {
+	info, err := system.GetInfo()
+	if err != nil {
+		core.HandleError(c, http.StatusInternalServerError, err, nil)
+		return
+	}
+	core.HandleSuccess(c, info)
+}

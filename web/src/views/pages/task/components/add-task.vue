@@ -5,7 +5,7 @@
     size="50%"
     :before-close="handleClose"
   >
-  <template #header>
+    <template #header>
       <div class="drawer-header" style="padding: 20px;font-size: 16px;">
         <span class="title">{{ type ? '添加计划任务' : '修改计划任务' }}</span>
       </div>
@@ -14,15 +14,15 @@
       ref="ruleFormRef"
       :model="ruleForm"
       :rules="rules"
-      label-width="120px"
+      label-position="top"
       style="padding: 0 20px"
     >
-      <el-form-item label="任务类型" prop="taskType" required>
-        <el-select v-model="ruleForm.taskType" placeholder="请选择任务类型">
+      <el-form-item label="任务类型" prop="cron_type" required>
+        <el-select v-model="ruleForm.cron_type" placeholder="请选择任务类型">
           <el-option label="Shell脚本" value="shell" />
-          <el-option label="备份应用" value="backup_app" />
+          <!-- <el-option label="备份应用" value="backup_app" />
           <el-option label="备份网站" value="backup_website" />
-          <el-option label="备份数据库" value="backup_database" />
+          <el-option label="备份数据库" value="backup_database" /> -->
         </el-select>
       </el-form-item>
 
@@ -30,29 +30,19 @@
         <el-input v-model="ruleForm.name" placeholder="请输入任务名称" />
       </el-form-item>
 
-     
-
-      <el-form-item label="脚本内容" prop="script" v-if="ruleForm.taskType === 'shell'">
-          <el-input
-            v-model="ruleForm.script"
-            type="textarea"
-            :rows="6"
-            placeholder="请输入Shell脚本内容" 
+      <el-form-item label="脚本内容" prop="shell_content" v-if="ruleForm.cron_type === 'shell'">
+        <div class="code-editor-wrapper">
+          <pre
             class="code-editor"
-            :spellcheck="false"
-            font-family="monospace"
-            style="font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
-                   background-color: #1e1e1e;
-                   color: #d4d4d4;
-                   border-radius: 4px;
-                   padding: 8px;"
-            @input="(val) => {
-              // 只允许输入代码字符
-              ruleForm.script = val.replace(/[^\x00-\x7F\n\r\t]/g, '');
-            }"
-          />
+            contenteditable="true"
+            spellcheck="false"
+            @input="handleScriptInput"
+            ref="codeEditorRef"
+          >{{ copy_content }}</pre>
+        </div>
       </el-form-item>
-      <el-form-item label="执行周期" prop="cycle" required>
+
+      <el-form-item label="执行周期" required>
         <div v-for="(cycle, index) in ruleForm.cycles" :key="index" class="cycle-row">
           <el-select v-model="cycle.type" @change="(val) => handleCycleChange(val, index)" placeholder="请选择执行周期" style="width: 100px;">
             <el-option label="每分钟" value="minute" />
@@ -60,93 +50,140 @@
             <el-option label="每天" value="day" />
             <el-option label="每周" value="week" />
             <el-option label="每月" value="month" />
-            <el-option label="自定义" value="custom" />
+            <el-option label="每N分钟" value="n_minute" />
           </el-select>
 
           <div class="cycle-inputs" :class="cycle.type">
-            <template v-if="cycle.type === 'month'">
+            <template v-if="cycle.type === 'month'" >
               <div v-for="(monthTime, mIndex) in cycle.monthTimes" :key="mIndex" class="time-row">
                 <div class="time-input-group">
-                  <el-input-number v-model="monthTime.day" :min="1" :max="31" placeholder="日" >
-                  <template #suffix>
-        <span>日</span>
-      </template>
-    </el-input-number>
-                </div>
-                <div class="time-input-group">
-                  <el-input-number v-model="monthTime.hour" :min="0" :max="23" placeholder="时" >
-                    000
-                  <template #suffix>
-        <span>时</span>
-      </template>
-    </el-input-number>
-                </div>
-                <div class="time-input-group">
-                  <el-input-number v-model="monthTime.minute" :min="0" :max="59" placeholder="分" >
-                    <template #suffix>
-                      <span>分</span>
-                    </template>
+                  <el-input-number 
+                    controls-position="right"
+                    v-model="monthTime.day" 
+                    :min="1" 
+                    :max="31" 
+                    placeholder="请输入"
+                    style="width: 120px"
+                  >
+                    <template #suffix><span>日</span></template>
                   </el-input-number>
                 </div>
-                <div class="time-actions">
-                  <el-button type="primary" link @click="addMonthTime(index)" v-if="mIndex === cycle.monthTimes.length - 1">
-                    <el-icon><Plus /></el-icon>
-                  </el-button>
-                  <el-button type="danger" link @click="removeMonthTime(index, mIndex)" v-if="cycle.monthTimes.length > 1">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
+                <div class="time-input-group">
+                  <el-input-number 
+                    controls-position="right"
+                    v-model="monthTime.hour" 
+                    :min="0" 
+                    :max="23" 
+                    placeholder="请输入"
+                    style="width: 120px"
+                  >
+                    <template #suffix><span>时</span></template>
+                  </el-input-number>
                 </div>
+                <div class="time-input-group">
+                  <el-input-number 
+                    controls-position="right"
+                    v-model="monthTime.minute" 
+                    :min="0" 
+                    :max="59" 
+                    placeholder="请输入"
+                    style="width: 120px"
+                  >
+                    <template #suffix><span>分</span></template>
+                  </el-input-number>
+                </div>
+                
               </div>
             </template>
 
             <template v-if="cycle.type === 'week'">
               <div v-for="(weekTime, wIndex) in cycle.weekTimes" :key="wIndex" class="time-row">
-                <el-select v-model="weekTime.day" placeholder="星期">
-                  <el-option v-for="i in 7" :key="i" :label="`星期${i}`" :value="i" />
+                <el-select v-model="weekTime.day" placeholder="请输入">
+                  <el-option v-for="i in weekDays" :key="i.value" :label="`周${i.day}`" :value="i.value" />
                 </el-select>
-                <el-input-number v-model="weekTime.hour" :min="0" :max="23" placeholder="时" style="width: 190px;"/>
-                <el-input-number v-model="weekTime.minute" :min="0" :max="59" placeholder="分" />
-                <div class="time-actions">
-                  <el-button type="primary" link @click="addWeekTime(index)" v-if="wIndex === cycle.weekTimes.length - 1">
-                    <el-icon><Plus /></el-icon>
-                  </el-button>
-                  <el-button type="danger" link @click="removeWeekTime(index, wIndex)" v-if="cycle.weekTimes.length > 1">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </div>
+                <el-input-number 
+                  controls-position="right"
+                  v-model="weekTime.hour" 
+                  :min="0" 
+                  :max="23" 
+                  placeholder="请输入"
+                  style="width: 120px"
+                >
+                  <template #suffix><span>时</span></template>
+                </el-input-number>
+                <el-input-number 
+                  controls-position="right"
+                  v-model="weekTime.minute" 
+                  :min="0" 
+                  :max="59" 
+                  placeholder="请输入"
+                  style="width: 120px"
+                >
+                  <template #suffix><span>分</span></template>
+                </el-input-number>
               </div>
             </template>
 
             <template v-if="cycle.type === 'day'">
-              <el-input-number v-model="cycle.dayHour" :min="0" :max="23" placeholder="时" />
-              <el-input-number v-model="cycle.dayMinute" :min="0" :max="59" placeholder="分" />
+              <el-input-number 
+                controls-position="right"
+                v-model="cycle.dayHour" 
+                :min="0" 
+                :max="23" 
+                placeholder="请输入"
+                style="width: 120px"
+              >
+                <template #suffix><span>时</span></template>
+              </el-input-number>
+              <el-input-number 
+                controls-position="right"
+                v-model="cycle.dayMinute" 
+                :min="0" 
+                :max="59" 
+                placeholder="请输入"
+                style="width: 120px"
+              >
+                <template #suffix><span>分</span></template>
+              </el-input-number>
             </template>
 
             <template v-if="cycle.type === 'hour'">
-              <el-input-number v-model="cycle.hourMinute" :min="0" :max="59" placeholder="分" />
+              <el-input-number 
+                controls-position="right"
+                v-model="cycle.hourMinute" 
+                :min="0" 
+                :max="59" 
+                placeholder="请输入"
+                style="width: 120px"
+              >
+                <template #suffix><span>分</span></template>
+              </el-input-number>
             </template>
 
-            <template v-if="cycle.type === 'custom'">
-              <el-input v-model="cycle.customCron" placeholder="请输入Cron表达式" />
+            <template v-if="cycle.type === 'n_minute'">
+              <el-input-number 
+                controls-position="right"
+                v-model="cycle.n_minute" 
+                :min="1" 
+                placeholder="请输入N值"
+                style="width: 120px"
+              />
             </template>
+
           </div>
-
           <div class="cycle-actions">
-            <el-button type="primary" link @click="addCycle" v-if="index === ruleForm.cycles.length - 1">
-              <el-icon><Plus /></el-icon>
-            </el-button>
             <el-button type="danger" link @click="removeCycle(index)" v-if="ruleForm.cycles.length > 1">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
         </div>
+        <div class="cycle-actions" style="width: 100%;">
+          <el-button type="primary"  @click="addCycle" >
+          <el-icon><Plus />添加</el-icon>
+        </el-button>
+        </div>
+        
       </el-form-item>
-
-      <el-form-item label="保存数量" prop="saveCount" v-if="ruleForm.taskType.includes('backup')">
-        <el-input-number v-model="ruleForm.saveCount" :min="1" :max="100" />
-        <span class="tip-text">设置保留的备份文件数量</span>
-      </el-form-item>
-
     </el-form>
 
     <template #footer>
@@ -159,9 +196,11 @@
 </template>
 
 <script setup lang="ts">
+import { Api } from '@/api/Api'
 import { ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
+import { Plus, Delete } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -169,49 +208,80 @@ const props = defineProps<{
   formData?: any
 }>()
 
-const emit = defineEmits(['update:modelValue', 'success'])
+const emit = defineEmits(['update:modelValue', 'success', 'taskAdded'])
 
 const drawer = ref(false)
 const direction = ref<'rtl' | 'ltr' | 'ttb' | 'btt'>('rtl')
 const ruleFormRef = ref<FormInstance>()
+const copy_content = ref('')
+const weekDays = [
+  { day: '一', value: 1 },
+  { day: '二', value: 2 },
+  { day: '三', value: 3 },
+  { day: '四', value: 4 },
+  { day: '五', value: 5 },
+  { day: '六', value: 6 },
+  { day: '日', value: 7 }
+]
 
 const ruleForm = reactive({
-  taskType: 'shell',
+  cron_type: 'shell',
   name: '',
-  cycles: [{
-    type: 'day',
-    monthTimes: [{
-      day: 1,
-      hour: 0,
-      minute: 0
-    }],
-    weekTimes: [{
-      day: 1,
-      hour: 0,
-      minute: 0
-    }],
-    dayHour: 0,
-    dayMinute: 0,
-    hourMinute: 0,
-    hourInterval: 2,
-    customCron: ''
-  }],
-  saveCount: 7
+  shell_content: '',
+  cycles: [
+    {
+      type: 'day',
+      monthTimes: [
+        {
+          day: 1,
+          hour: 0,
+          minute: 0
+        }
+      ],
+      weekTimes: [
+        {
+          day: 1,
+          hour: 0,
+          minute: 0
+        }
+      ],
+      dayHour: 0,
+      dayMinute: 0,
+      hourMinute: 0,
+      customCron: '',
+      n_minute: 1
+    }
+  ]
 })
 
 const rules = reactive<FormRules>({
-  taskType: [{ required: true, message: '请选择任务类型', trigger: 'change' }],
-  name: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  cycle: [{ required: true, message: '请设置执行周期', trigger: 'blur' }],
-  script: [{ required: true, message: '请输入脚本内容', trigger: 'blur' }],
-  saveCount: [{ required: true, message: '请设置保存数量', trigger: 'change' }]
+  cron_type: [
+    { required: true, message: '请选择任务类型', trigger: 'change' }
+  ],
+  name: [
+    { required: true, message: '请输入任务名称', trigger: 'blur' }
+  ],
+  shell_content: [
+    {
+      required: true,
+      message: '请输入脚本内容',
+      trigger: 'blur',
+      validator: (rule, value, callback) => {
+        if (ruleForm.cron_type === 'shell' && !value) {
+          callback(new Error('请输入脚本内容'))
+        } else {
+          callback()
+        }
+      }
+    }
+  ]
 })
 
 const handleCycleChange = (type: string | number | boolean | undefined, index: number) => {
   if (typeof type !== 'string') return
   const cycle = ruleForm.cycles[index]
-  
-  switch(type) {
+
+  switch (type) {
     case 'minute':
       cycle.customCron = '* * * * *'
       break
@@ -227,6 +297,11 @@ const handleCycleChange = (type: string | number | boolean | undefined, index: n
     case 'month':
       cycle.customCron = '0 0 1 * *'
       break
+    case 'n_minute':
+      cycle.customCron = `*/${cycle.n_minute} * * * *`
+      break
+    default:
+      break
   }
 }
 
@@ -237,30 +312,36 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
   if (!ruleFormRef.value) return
-  
+
+  // 手动验证执行周期
+  if (!ruleForm.cycles || ruleForm.cycles.length === 0) {
+    ElMessage.error('请设置执行周期')
+    return
+  }
+
   await ruleFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
         // 转换所有周期为 cron 表达式数组
-        const cronExpressions = ruleForm.cycles.flatMap(cycle => {
-          switch(cycle.type) {
+        const cronExpressions = ruleForm.cycles.flatMap((cycle) => {
+          switch (cycle.type) {
+            case 'minute':
+              return ['* * * * *']
             case 'hour':
-              return [`${cycle.hourMinute} */${cycle.hourInterval} * * *`] // 每N小时X分钟
-            
-            case 'week':
-              return cycle.weekTimes.map(time => 
-                `${time.minute} ${time.hour} * * ${time.day}`) // 每周X日Y时Z分
-            
+              return [`${cycle.hourMinute} * * * *`]
             case 'day':
-              return [`${cycle.dayMinute} ${cycle.dayHour} * * *`] // 每天X时Y分
-            
+              return [`${cycle.dayMinute} ${cycle.dayHour} * * *`]
+            case 'week':
+              return cycle.weekTimes.map((time) =>
+                `${time.minute} ${time.hour} * * ${time.day}`
+              )
             case 'month':
-              return cycle.monthTimes.map(time => 
-                `${time.minute} ${time.hour} ${time.day} * *`) // 每月X日Y时Z分
-            
-            case 'custom':
-              return [cycle.customCron]
-            
+              return cycle.monthTimes.map((time) =>
+                `${time.minute} ${time.hour} ${time.day} * *`
+              )
+            case 'n_minute':
+              return [generateCronExpression(cycle.n_minute, 0)]
+              // return [`*/${cycle.n_minute} * * * *`]
             default:
               return []
           }
@@ -268,13 +349,15 @@ const handleSubmit = async () => {
 
         // 打印生成的 cron 表达式数组
         console.log('Cron expressions:', cronExpressions)
-
-        // TODO: 调用API保存数据，传递 cronExpressions
-        const submitData = {
-          ...ruleForm,
-          cronExpressions
+        const apidata={
+          name:ruleForm.name,
+          cron_type:ruleForm.cron_type,
+          cron_times:cronExpressions,
+          shell_content:ruleForm.shell_content,
+          status:1
         }
-        
+        const { data } = await Api.addPlanTask(apidata)
+        emit('taskAdded', data)
         ElMessage.success(props.type ? '添加成功' : '修改成功')
         emit('success')
         handleClose()
@@ -301,60 +384,102 @@ watch(() => props.formData, (val) => {
 const addCycle = () => {
   ruleForm.cycles.push({
     type: 'day',
-    monthTimes: [{
-      day: 1,
-      hour: 0,
-      minute: 0
-    }],
-    weekTimes: [{
-      day: 1,
-      hour: 0,
-      minute: 0
-    }],
+    monthTimes: [
+      {
+        day: 1,
+        hour: 0,
+        minute: 0
+      }
+    ],
+    weekTimes: [
+      {
+        day: 1,
+        hour: 0,
+        minute: 0
+      }
+    ],
     dayHour: 0,
     dayMinute: 0,
     hourMinute: 0,
-    hourInterval: 2,
-    customCron: ''
+    customCron: '',
+    n_minute: 1,
   })
 }
 
 // 删除周期行
 const removeCycle = (index: number) => {
-  ruleForm.cycles.splice(index, 1)
+  if (ruleForm.cycles.length > 1) {
+    ruleForm.cycles.splice(index, 1)
+  }
 }
 
-// 添加月时间
-const addMonthTime = (cycleIndex: number) => {
-  ruleForm.cycles[cycleIndex].monthTimes.push({
-    day: 1,
-    hour: 0,
-    minute: 0
-  })
+function generateCronExpression(minutesInput: number, hoursInput: number): string {
+    // 初始化 Cron 表达式的各个部分
+    let minutes = minutesInput % 60;
+    let hours = Math.floor(minutesInput / 60) + hoursInput;
+    let days = 1;
+    let months = 1;
+    let weeks = "*";
+
+    // 处理小时进位到天
+    if (hours >= 24) {
+        days += Math.floor(hours / 24);
+        hours = hours % 24;
+    }
+
+    // 处理天进位到月（简单假设每月 30 天）
+    if (days > 30) {
+        months += Math.floor(days / 30);
+        days = days % 30;
+        if (days === 0) {
+            days = 30;
+        }
+    }
+
+    // 处理月进位到年（简单假设一年 12 个月）
+    if (months > 12) {
+        months = months % 12;
+        if (months === 0) {
+            months = 12;
+        }
+    }
+
+    // 生成新的 Cron 表达式
+    return `${minutes} ${hours} ${days} ${months} ${weeks}`;
 }
 
-// 删除月时间
-const removeMonthTime = (cycleIndex: number, timeIndex: number) => {
-  ruleForm.cycles[cycleIndex].monthTimes.splice(timeIndex, 1)
+const handleScriptInput = (event: InputEvent) => {
+  const target = event.target as HTMLPreElement;
+  if (target) {
+    ruleForm.shell_content = target.innerText;
+  }
 }
 
-// 添加周时间
-const addWeekTime = (cycleIndex: number) => {
-  ruleForm.cycles[cycleIndex].weekTimes.push({
-    day: 1,
-    hour: 0,
-    minute: 0
-  })
-}
 
-// 删除周时间
-const removeWeekTime = (cycleIndex: number, timeIndex: number) => {
-  ruleForm.cycles[cycleIndex].weekTimes.splice(timeIndex, 1)
-}
 </script>
 
 <style scoped lang="less">
+.el-form {
+  :deep(.el-form-item) {
+    .el-form-item__label {
+      padding-bottom: 8px;
+    }
+    
+    .el-form-item__content {
+      margin-left: 0 !important;
+    }
+  }
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ebeef5;
+}
+
 .cycle-row {
+  width: 100%;
   display: flex;
   align-items: center;
   margin-bottom: 16px;
@@ -363,7 +488,6 @@ const removeWeekTime = (cycleIndex: number, timeIndex: number) => {
   .cycle-inputs {
     display: flex;
     gap: 8px;
-    margin-top: 8px;
 
     .el-input-number,
     .el-select {
@@ -388,6 +512,7 @@ const removeWeekTime = (cycleIndex: number, timeIndex: number) => {
   align-items: center;
   margin-bottom: 8px;
   gap: 8px;
+  width: 100%;
 
   &:last-child {
     margin-bottom: 0;
@@ -396,6 +521,45 @@ const removeWeekTime = (cycleIndex: number, timeIndex: number) => {
   .time-actions {
     display: flex;
     gap: 8px;
+  }
+}
+
+.code-editor-wrapper {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  width: 100%;
+  .code-editor {
+    margin: 0;
+    padding: 12px;
+    min-height: 200px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #d4d4d4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    outline: none;
+    
+    &:focus {
+      border-color: var(--el-color-primary);
+    }
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #666;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #1e1e1e;
+    }
   }
 }
 </style>

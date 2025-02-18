@@ -3,6 +3,9 @@ import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Setting, ArrowDown } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import { Api } from '@/api/Api'
+import { onMounted } from 'vue'
+import AddTask from './add-task.vue'
 
 interface RuleForm {
   name: string
@@ -11,28 +14,27 @@ interface RuleForm {
   desc: string
 }
 
-const tableData = [
-  {
-    date: 'www.baidu.com',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-02',
-    status: 2,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-04',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
-  },
-  {
-    date: '2016-05-01',
-    status: 1,
-    address: 'No. 189, Grove St, Los Angeles'
+const tableData = ref([])
+const getData = async () => {
+  try {
+    const { data: res } = await Api.getPlanTaskList({
+      page: pagination.currentPage,
+      pageSize: pagination.pageSize,
+      q: searchValue.value
+    })
+    console.log(res,'res')
+    if (res ) {  // 确保请求成功
+      tableData.value = res.data || []  // 更新表格数据
+      pagination.total = res.total || 0  // 更新总数
+    } else {
+      ElMessage.error(res?.message || '获取数据失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取数据失败')
+    tableData.value = []
+    pagination.total = 0
   }
-]
+}
 const category = ref(['传统项目', 'swoole异步项目', 'thinkphp异步项目', '异步项目', '一键部署', '批量创建'])
 
 const formInline = reactive({
@@ -105,13 +107,31 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     }
   })
 }
+
+const pagination = reactive({
+  currentPage: 1,
+  pageSize: 10,
+  total: 0
+})
+
+const filterDirection = ref('')
+const searchValue = ref('')
+
+const addTaskVisible = ref(false)
+const addTask = () => {
+  addTaskVisible.value = true
+}
+
+onMounted(() => {
+  getData()
+})
 </script>
 
 <template>
   <div class="container">
     <div class="tool-bar">
       <el-space class="btn-group">
-        <el-button type="primary">添加任务</el-button>
+        <el-button type="primary" @click="addTask">添加任务</el-button>
         <el-button type="primary">执行任务</el-button>
         <el-button type="primary">启动任务</el-button>
         <el-button type="primary">停止任务</el-button>
@@ -167,6 +187,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         <el-pagination background layout="prev, pager, next" :total="1000" />
       </div>
     </div>
+    <AddTask v-model="addTaskVisible" :type="true" />
   </div>
 </template>
 

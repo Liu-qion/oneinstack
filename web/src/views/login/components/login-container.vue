@@ -1,5 +1,38 @@
 <script setup lang="ts">
 import System from '@/utils/System'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  const handleSplineScript = () => {
+    const splineScript = document.querySelector('script[src*="spline-viewer.js"]')
+    const splineViewer = document.querySelector('spline-viewer')
+    
+    if (window.innerWidth <= 1200) {
+      if (splineScript) {
+        splineScript.remove()
+      }
+      if (splineViewer) {
+        (splineViewer as HTMLElement).style.display = 'none'
+      }
+    } else {
+      if (!splineScript) {
+        const script = document.createElement('script')
+        script.type = 'module'
+        script.src = 'https://unpkg.com/@splinetool/viewer@1.9.68/build/spline-viewer.js'
+        document.head.appendChild(script)
+      }
+      if (splineViewer) {
+        (splineViewer as HTMLElement).style.display = 'block'
+      }
+    }
+  }
+
+  // 初始化时检查
+  handleSplineScript()
+
+  // 监听窗口大小变化
+  window.addEventListener('resize', handleSplineScript)
+})
 
 interface Props {
   currentActive?: 'login' | 'register'
@@ -12,10 +45,15 @@ withDefaults(defineProps<Props>(), {
 })
 </script>
 
+
+
+
+
+
 <template>
   <div v-loading="loading" class="login-container">
     <div class="login-content-left">
-      <img class="login-content-left__logo" src="/static/images/login-logo.webp" alt="" />
+      <!-- <img class="login-content-left__logo" src="/static/images/login-logo.webp" alt="" />
       <div class="login-content-left__btn">
         <button
           class="login-content-left__btn-login"
@@ -24,8 +62,10 @@ withDefaults(defineProps<Props>(), {
         >
           登录
         </button>
-      </div>
+      </div> -->
+      
     </div>
+    <spline-viewer url="/static/scene.splinecode"></spline-viewer>
     <div class="login-content-right">
       <div class="login-content-right__main">
         <slot
@@ -50,14 +90,15 @@ withDefaults(defineProps<Props>(), {
 .login-container {
   width: 100%;
   height: 100vh;
-  background-color: @bg-color;
+  // background-color: @bg-color;
+  background: url('/static/images/login-bg.png') no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
 
   .login-content-left {
     padding: 32px 42px;
-    width: 657px;
+    // width: 657px;
     height: 100%;
     background: url('/static/images/login-bg.webp') no-repeat;
     background-size: 100% 100%;
@@ -68,7 +109,7 @@ withDefaults(defineProps<Props>(), {
       top: 50%;
       right: 0;
       transform: translate(0, -50%);
-      width: 163px;
+      // width: 163px;
       height: 210px;
       display: flex;
       flex-direction: column;
@@ -95,15 +136,15 @@ withDefaults(defineProps<Props>(), {
   }
 
   .login-content-right {
-    flex: 1;
+    // flex: 1;
     height: 100%;
-    display: flex;
+    // display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
 
     &__main {
-      width: 434px;
+      // width: 434px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -160,7 +201,7 @@ withDefaults(defineProps<Props>(), {
 
   &__wrapper {
     box-shadow: none;
-    border-bottom: 1px solid @border-gray;
+    // border-bottom: 1px solid @border-gray;
     transition: border 0.3s;
     padding-left: 0;
 

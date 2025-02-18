@@ -122,6 +122,61 @@ export const Api = {
   /** 启动/禁用防火墙 */
   stopFirewall: (obj: any) => {
     return http.post('/safe/stop', obj)
+  },
+  /** 删除防火墙规则 */
+  deleteSale: (obj: any) => {
+    return http.post('/safe/del', obj)
+  },
+  /** 添加防火墙规则 */
+  addFirewallRule: (obj: any) => {
+    return http.post('/safe/add', obj)
+  },
+  /** 修改防火墙规则 */
+  updateFirewallRule: (obj: any) => {
+    return http.post('/safe/update', obj)
+  },
+  /** 获取计划任务列表 */
+  getPlanTaskList: (obj: any) => {
+    return http.post('/cron/list', obj)
+  },
+  /** 新增计划任务 */
+  addPlanTask: (obj: any) => {
+    return http.post('/cron/add', obj)
+  },
+  /** 启用计划任务 */
+  enablePlanTask: (obj: any) => {
+    return http.post('/cron/enable', obj)
+  },
+  /** 禁用计划任务 */
+  disablePlanTask: (obj: any) => {
+    return http.post('//cron/disable', obj)
+  },
+  /** 删除计划任务 */
+  deletePlanTask: (obj: any) => {
+    return http.post('/cron/del', obj)
+  },
+  /** 获取系统信息/面板设置 */
+  getSystemInfo: () => {
+    return http.get('/sys/systeminfo')
+  },
+  /** 更新系统信息/修改端口*/
+  updatePort: (obj: any) => {
+    return http.post('/sys/updateport', obj)
+  },
+  /** 修改标题 */
+  updateSystemTitley: (obj: any) => {
+    return http.post('/sys/updatesystemtitle', obj)
+  },
+  /** 更新用户密码 */
+  updateResetpassword: (obj: any) => {
+    return http.post('/sys/resetpassword', obj)
+  },
+  /** 更新用户账号 */
+  updateUpdateuser: (obj: any) => {
+    return http.post('/sys/updateuser', obj)
+  },
+  /** 获取基础信息 */
+  getBaseInfo: () => {
+    return http.get('/sys/getbaseinfo')
   }
 }
-  

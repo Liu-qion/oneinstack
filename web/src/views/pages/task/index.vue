@@ -11,14 +11,14 @@ const conf = reactive({
       index: 0,
       component: Scheduled
     },
-    {
-      name: '任务编排',
-      index: 1
-    },
-    {
-      name: '脚本库',
-      index: 2
-    }
+    // ,{
+    //   name: '任务编排',
+    //   index: 1
+    // },
+    // {
+    //   name: '脚本库',
+    //   index: 2
+    // }
   ],
   clickActive: (item: any) => {
     conf.activeIndex = item.index

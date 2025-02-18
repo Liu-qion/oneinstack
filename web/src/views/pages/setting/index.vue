@@ -15,26 +15,26 @@ const conf = reactive({
       index: 0,
       component: AllSetting
     },
-    {
-      name: '面板设置',
-      index: 1,
-      component: PanelSetting
-    },
-    {
-      name: '安全设置',
-      index: 2,
-      component: SecuritySetting
-    },
-    {
-      name: '告警通知',
-      index: 3,
-      component: AlarmNotification
-    },
-    {
-      name: '消息通知',
-      index: 4,
-      component: MessageNotification
-    }
+    // {
+    //   name: '面板设置',
+    //   index: 1,
+    //   component: PanelSetting
+    // },
+    // {
+    //   name: '安全设置',
+    //   index: 2,
+    //   component: SecuritySetting
+    // },
+    // {
+    //   name: '告警通知',
+    //   index: 3,
+    //   component: AlarmNotification
+    // },
+    // {
+    //   name: '消息通知',
+    //   index: 4,
+    //   component: MessageNotification
+    // }
   ]),
   clickActive: (item: any) => {
     conf.activeIndex = item.index

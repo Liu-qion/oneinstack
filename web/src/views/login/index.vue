@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { reactive, useTemplateRef } from 'vue'
+import { reactive, useTemplateRef,ref } from 'vue'
 import LoginContainer from './components/login-container.vue'
 import System from '@/utils/System'
 import { Api } from '@/api/Api'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import sconfig from '@/sstore/sconfig'
+
+
+const isMobile = ref(window.innerWidth <= 768)
+
+window.addEventListener('resize', () => {
+  isMobile.value = window.innerWidth >= 768
+})
 
 const conf = reactive({
   form: {
@@ -42,34 +49,44 @@ const conf = reactive({
 <template>
   <login-container :loading="conf.loading" currentActive="login">
     <template #default="{ className }">
-      <div class="logo-box flex justify-center fit-width">
-        <v-s-icon class="login-content-right__main-logo" name="logo" width="175" height="144" />
+      <div class="logo-box flex justify-center fit-width" :class="{'mobile-logo': isMobile}" style="padding: 100px 0 60px;">
+        <transition name="logo-fade" mode="out-in">
+          <img v-if="isMobile" src="/static/images/logo-pc.png" alt="logo" width="320" height="60" key="pc-logo" />
+          <img v-else src="/static/images/logo-app.png" alt="logo" width="180" height="180" key="mobile-logo" />
+        </transition>
       </div>
-      <el-form ref="formRef" :model="conf.form" :rules="conf.rules" class="fit-width">
-        <el-form-item :class="className.formItemGap" prop="username">
-          <el-input v-model="conf.form.username" placeholder="输入您的账户/手机号/邮箱号" clearable>
-            <template #prefix>
-              <v-s-icon name="user" size="30" />
-            </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="conf.form.password" placeholder="输入您的密码" type="password" clearable>
-            <template #prefix>
-              <v-s-icon name="password" size="30" />
-            </template>
-          </el-input>
-        </el-form-item>
-        <div class="flex justify-between">
-          <el-checkbox v-model="conf.form.remember" label="记住密码" />
+      <div class="" :class="{'login-title-box': isMobile}">
+        <div class="login-title flex" :class="{'mobile-title': isMobile}">
+          <transition name="fade" mode="out-in">
+            <div style="flex: 1;" :key="!isMobile ? 1 : 0">{{ isMobile ? '欢迎使用': '欢迎来到Oneinstack' }}</div>
+          </transition>
         </div>
-        <button :class="className.loginBtn" @click.prevent="conf.handleLogin">登录</button>
-      </el-form>
-      <div :class="className.other">
+        <el-form ref="formRef" :model="conf.form" :rules="conf.rules" class="fit-width">
+          <el-form-item :class="[className.formItemGap, {'input-box': !isMobile}]" prop="username" >
+            <el-input v-model="conf.form.username" placeholder="输入您的账户/手机号/邮箱号" clearable  :class="{'pc-input': isMobile}">
+              <template #prefix>
+                <v-s-icon name="user" size="30" />
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item prop="password" :class="{'input-box': !isMobile}">
+            <el-input v-model="conf.form.password" placeholder="输入您的密码" type="password" clearable :class="{'pc-input': isMobile}" >
+              <template #prefix>
+                <v-s-icon name="password" size="30" />
+              </template>
+            </el-input>
+          </el-form-item>
+          <div class="flex justify-between">
+            <el-checkbox v-model="conf.form.remember" label="记住密码" />
+          </div>
+          <button :class="[className.loginBtn, {'mobile-btn': isMobile}]" @click.prevent="conf.handleLogin">登录</button>
+        </el-form>
+      </div>
+      <!-- <div :class="className.other">
         <el-divider class="login-content-right__main-other-title">
           <el-link @click="conf.handleToAppLogin">App扫码登录</el-link>
         </el-divider>
-      </div>
+      </div> -->
     </template>
   </login-container>
 </template>
@@ -80,9 +97,39 @@ const conf = reactive({
 @border-gray: #e3e3e3;
 @bg-color: #f5f5f5;
 
+.login-title{
+  display: flex;
+  font-size: 32px;
+  font-weight: 600;
+  color: #2b2b2b;
+  margin-bottom: 20px;
+  text-align: left;
+  justify-content: flex-start;
+  width: 100%;
+}
+.login-title-box{
+  width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 62px;
+  border-radius: 10px;
+}
+.input-box{
+  width: 300px;
+height: 62px;
+background: #FAF4EC;
+border-radius: 20px 20px 20px 20px;
+padding:  0 20px;
+}
+.pc-input{
+  // border-bottom: none;
+  border-bottom: 1px solid #f5f5f5
+}
 .login-content-right__main {
   &-logo {
-    margin-bottom: 116px;
+    margin-bottom: 80px;
   }
 
   &-other {

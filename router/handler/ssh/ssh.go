@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"fmt"
 	"net/http"
 	"oneinstack/internal/services/ssh"
 	"oneinstack/utils"
@@ -23,12 +22,11 @@ func OpenSSH(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, err := utils.ValidateJWT(parts[1])
+	_, err := utils.ValidateJWT(parts[1])
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 		c.Abort()
 		return
 	}
-	fmt.Println(claims)
 	ssh.OpenWebShell(c)
 }

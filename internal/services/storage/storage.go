@@ -15,7 +15,7 @@ import (
 
 func Add(param *input.AddParam) error {
 	s := &models.Storage{}
-	tx := app.DB().Where("addr = ? and port =?", param.Addr, param.Port).First(s)
+	tx := app.DB().Where("addr = ? and port = ?", param.Addr, param.Port).First(s)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return tx.Error
 	}

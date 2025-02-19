@@ -3,7 +3,10 @@ package ssh
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net"
 	"os/exec"
+	"sync"
 	"syscall"
 	"time"
 
@@ -13,7 +16,6 @@ import (
 )
 
 func OpenWebShell(c *gin.Context) {
-
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -38,17 +40,21 @@ func OpenWebShell(c *gin.Context) {
 	defer ptmx.Close()
 	defer cmd.Process.Kill()
 
+	done := make(chan struct{})
+	var once sync.Once
+	closeDone := func() { once.Do(func() { close(done) }) }
+
 	// 优化输出处理
 	go func() {
-		buf := make([]byte, 4096) // 增大缓冲区
+		buf := make([]byte, 4096)
 		for {
 			n, err := ptmx.Read(buf)
 			if err != nil {
-				conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second))
+				closeDone()
 				return
 			}
-			// 使用二进制消息类型发送原始终端数据
 			if err := conn.WriteMessage(websocket.BinaryMessage, buf[:n]); err != nil {
+				closeDone()
 				return
 			}
 		}
@@ -57,12 +63,19 @@ func OpenWebShell(c *gin.Context) {
 	// 优化输入处理
 	go func() {
 		for {
+			// 设置30秒读取超时
+			conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
 			messageType, data, err := conn.ReadMessage()
 			if err != nil {
+				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+					log.Println("Connection closed due to inactivity timeout")
+				}
+				closeDone()
 				return
 			}
 
 			switch messageType {
+
 			case websocket.TextMessage:
 				// 先尝试解析窗口大小
 				var size struct {
@@ -88,10 +101,14 @@ func OpenWebShell(c *gin.Context) {
 				if _, err := ptmx.Write(data); err != nil {
 					return
 				}
+			default:
+				closeDone()
+				return
 			}
+
 		}
 	}()
 
-	// 保持连接
-	select {}
+	// 等待关闭信号
+	<-done
 }

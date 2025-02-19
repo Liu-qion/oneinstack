@@ -57,33 +57,36 @@ func List(ty string) ([]*models.Storage, error) {
 
 func LibList(param *input.QueryParam) (*services.PaginatedResult[models.Library], error) {
 	if param.Type == "redis" {
-		s := &models.Storage{}
-		tx := app.DB().Where("id = ?", param.ID).First(s)
-		if tx.Error != nil {
-			return nil, tx.Error
-		}
-		op := NewRedisOP(s)
-		err := op.Connet()
-		if err != nil {
-			return nil, err
-		}
-		libs, err := op.GetLibs()
-		if err != nil {
-			return nil, err
-		}
-		return &services.PaginatedResult[models.Library]{
-			Data:       libs,
-			Total:      len(libs),
-			Page:       1,
-			PageSize:   100,
-			TotalPages: 1,
-		}, nil
-	} else {
-		return services.Paginate[models.Library](app.DB().Where("type = ?", param.Type), &models.Library{}, &input.Page{
-			Page:     param.Page.Page,
-			PageSize: param.Page.PageSize,
-		})
+		return GetRedisLib(param)
 	}
+	return services.Paginate[models.Library](app.DB().Where("type = ?", param.Type), &models.Library{}, &input.Page{
+		Page:     param.Page.Page,
+		PageSize: param.Page.PageSize,
+	})
+}
+
+func GetRedisLib(param *input.QueryParam) (*services.PaginatedResult[models.Library], error) {
+	s := &models.Storage{}
+	tx := app.DB().Where("id = ?", param.ID).First(s)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	op := NewRedisOP(s)
+	err := op.Connet()
+	if err != nil {
+		return nil, err
+	}
+	libs, err := op.GetLibs()
+	if err != nil {
+		return nil, err
+	}
+	return &services.PaginatedResult[models.Library]{
+		Data:       libs,
+		Total:      len(libs),
+		Page:       1,
+		PageSize:   100,
+		TotalPages: 1,
+	}, nil
 }
 
 func AddLibs(param *input.LibParam) error {

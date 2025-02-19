@@ -131,15 +131,15 @@ conf.list.getData()
 </script>
 
 <template>
-  <div class="software-container relative">
+  <div class="software-container relative" >
     <div class="absolute fit-width" style="padding-bottom: 35px">
       <card-tabs :list="conf.dataTypelist" :activeIndex="conf.activeIndex" :clickActive="conf.clickActive" />
-      <div v-loading="conf.list.loading" class="box2">
-        <div class="category flex justify-between items-center">
+      <div v-loading="conf.list.loading" class="box2" style="padding-left:  26px; padding-right: 26px">
+        <div class="category flex justify-between items-center" >
           <el-tabs v-model="conf.tabs.selected" @tab-click="conf.tabs.handleClick">
             <el-tab-pane v-for="item in conf.tabs.list" :label="item.name" :name="item.index" />
           </el-tabs>
-          <div class="fit-height mr-2" style="padding: 6px">
+          <div class="fit-height mr-2" style="padding: 6px ;margin-right: 0;" >
             <search-input v-model="conf.list.params.name" placeholder="请输入搜索关键字" @search="conf.list.onSearch" />
           </div>
         </div>

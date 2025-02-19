@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import System from '@/utils/System'
-import { onMounted } from 'vue'
+import { onMounted ,ref } from 'vue'
+const isMobile = ref(window.innerWidth <= 1000)
 
+window.addEventListener('resize', () => {
+  isMobile.value = window.innerWidth >= 1000
+})
 onMounted(() => {
   const handleSplineScript = () => {
     const splineScript = document.querySelector('script[src*="spline-viewer.js"]')
     const splineViewer = document.querySelector('spline-viewer')
     
-    if (window.innerWidth <= 1200) {
+    if (window.innerWidth <= 1000) {
       if (splineScript) {
         splineScript.remove()
       }
@@ -52,7 +56,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div v-loading="loading" class="login-container">
-    <div class="login-content-left">
+    <div class="login-content-left" v-if="isMobile">
       <!-- <img class="login-content-left__logo" src="/static/images/login-logo.webp" alt="" />
       <div class="login-content-left__btn">
         <button
@@ -63,9 +67,9 @@ withDefaults(defineProps<Props>(), {
           登录
         </button>
       </div> -->
-      
+      <spline-viewer url="/static/scene.splinecode"></spline-viewer>
     </div>
-    <spline-viewer url="/static/scene.splinecode"></spline-viewer>
+    
     <div class="login-content-right">
       <div class="login-content-right__main">
         <slot
@@ -98,13 +102,14 @@ withDefaults(defineProps<Props>(), {
   align-items: center;
 
   .login-content-left {
-    padding: 32px 42px;
+    min-width: 550px;
+    padding: 32px 0;
     // width: 657px;
     height: 100%;
     // background: url('/static/images/login-bg.webp') no-repeat;
     background: rgb(255, 250 , 243);
     background-size: 100% 100%;
-    position: relative;
+    // position: relative;
 
     &__btn {
       position: absolute;

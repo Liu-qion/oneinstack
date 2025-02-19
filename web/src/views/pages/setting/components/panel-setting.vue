@@ -5,6 +5,9 @@ import { Api } from '@/api/Api'
 import { onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { watchEffect } from 'vue'
+import { useCounterStore } from '@/stores/counter';
+const counterStore = useCounterStore();
+
 
 interface Props {
   isCard?: boolean
@@ -52,8 +55,10 @@ const conf = reactive<Config>({
         click: async () => {
           try {
             const title = conf.settingData.find(item => item.prop === 'title')?.value
+            
             const { data } = await Api.updateSystemTitley({ title :title})
             if(data) {
+              document.title = title+''
               ElMessage.success('修改成功')
             }
           } catch(error) {

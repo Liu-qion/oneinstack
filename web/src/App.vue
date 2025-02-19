@@ -1,6 +1,7 @@
 <template>
   <x-route-event></x-route-event>
   <x-router-view :show="conf.show"></x-router-view>
+  <div v-title data-title="我是标题"></div>
 </template>
 
 <script setup lang="ts">

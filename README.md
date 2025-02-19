@@ -1,34 +1,102 @@
-<h1 align=center>Oneinstack</h1>
-<h2 align=center><a href="">Demo Live</a></h1>
+<h1 align="center">Oneinstack 服务器管理面板</h1>
 
-[![GitHub forks](https://img.shields.io/github/forks/guangzhengli/k8s-tutorials)](https://github.com/guangzhengli/k8s-tutorials/network)[![GitHub stars](https://img.shields.io/github/stars/guangzhengli/k8s-tutorials)](https://github.com/guangzhengli/k8s-tutorials/stargazers)[![GitHub issues](https://img.shields.io/github/issues/guangzhengli/k8s-tutorials)](https://github.com/guangzhengli/k8s-tutorials/issues)[![GitHub license](https://img.shields.io/github/license/guangzhengli/k8s-tutorials)](https://github.com/guangzhengli/k8s-tutorials/blob/main/LICENSE)![Docker Pulls](https://img.shields.io/docker/pulls/guangzhengli/hellok8s)
+[![GitHub forks](https://img.shields.io/github/forks/guangzhengli/oneinstack)](https://github.com/guangzhengli/oneinstack/network)
+[![GitHub stars](https://img.shields.io/github/stars/guangzhengli/oneinstack)](https://github.com/guangzhengli/oneinstack/stargazers)
+[![GitHub license](https://img.shields.io/github/license/guangzhengli/oneinstack)](https://github.com/guangzhengli/oneinstack/blob/main/LICENSE)
+![GitHub release](https://img.shields.io/github/v/release/guangzhengli/oneinstack)
 
-<h4 align=center>🌈 Oneinstack</h4>
+> 一款开源的 Linux 服务器运维管理面板，让服务器管理更简单、更安全、更高效
 
-xxxx
+## 🚀 功能特性
 
-这里是文档的索引：
-* [准备工作](docs/pre.md)
-* [container](docs/container.md)
-* [pod](docs/pod.md)
+- 🛡️ 可视化服务器状态监控（CPU/内存/磁盘/网络）
+- 🔧 一键安装常用服务/软件（Nginx/MySQL/Redis 等）
+- 🔐 自动防火墙配置与管理
+- 🌐 网站/FTP
+- 🔄 定时任务管理（Crontab）
+- [ x ] 📊 实时日志查看与分析
+- [ x ] 数据库可视化管理
+- [ x ] ⚡ 内置 BBR 网络加速优化
+- [ x ] 📡 支持多语言操作界面
 
+## 📦 快速安装
 
-# Oneinstack
+### 系统要求
 
-## 准备工作
+- 操作系统：CentOS 7+/Ubuntu 20.04+
+- 内存：推荐 1GB 以上
+- 磁盘空间：至少 20GB 可用空间
+- 需要 root 权限
 
-在开始本教程之前，需要配置好本地环境，以下是需要安装的依赖和包。
+### 安装命令
 
-### 安装 docker
+#### CentOS
 
-首先我们需要安装 `docker` 来打包镜像，如果你本地已经安装了 `docker`，那么你可以选择跳过这一小节。
+```bash
+wget -O install_centos.sh https://raw.githubusercontent.com/guangzhengli/oneinstack/main/install-cent.sh
+chmod +x install_centos.sh
+./install_centos.sh
+```
 
-#### 推荐安装方法
+#### Ubuntu
 
-目前使用 [Docker Desktop](https://www.docker.com/products/docker-desktop/) 来安装 docker 还是最简单的方案，打开官网下载对应你电脑操作系统的包即可 (https://www.docker.com/products/docker-desktop/)，
+```bash
+wget -O install_ubuntu.sh https://raw.githubusercontent.com/guangzhengli/oneinstack/main/install-ubuntu.sh
+chmod +x install_ubuntu.sh
+./install_ubuntu.sh
+```
 
-当安装完成后，可以通过 `docker run hello-world` 来快速校验是否安装成功！
+安装完成后访问：`http://你的服务器IP:8089`
 
-#### 其它安装方法
+## 🖥️ 管理功能
 
-目前  Docker 公司宣布  [Docker Desktop](https://www.docker.com/products/docker-desktop/) 只对个人开发者或者小型团体免费 (2021年起对大型公司不再免费)，所以如果你不能通过  [Docker Desktop](https://www.docker.com/products/docker-desktop/) 的方式下载安装 `docker`，可以参考 [这篇文章](https://dhwaneetbhatt.com/blog/run-docker-without-docker-desktop-on-macos) 只安装  [Docker CLI](https://github.com/docker/cli)。
+### 服务器管理
+
+- 实时资源监控
+
+![alt 属性文本](img/1.png)
+
+- 防火墙规则配置
+
+![alt 属性文本](img/2.png)
+
+- SSH 端口管理
+
+- 系统服务管理
+- 定时任务管理
+
+![alt 属性文本](img/3.png)
+
+- 系统更新提醒
+
+### 应用管理
+
+- 一键安装：
+  - Web 服务器：Nginx
+  - 数据库：MySQL/Redis
+  - 运行环境：PHP/JAVA
+
+### 网站管理
+
+- 静态代理
+- 反向代理
+
+## 🛠️ 技术架构
+
+- 核心语言：Go
+- 前端框架：Vue.js
+- 数据库：SQLite
+- 进程管理：Systemd
+
+## 🤝 参与贡献
+
+我们欢迎任何形式的贡献！
+
+## 📄 开源协议
+
+本项目采用 [MIT License](LICENSE) 开源协议。
+
+---
+
+> 🌍 官网地址：[https://oneinstack.com](https://oneinstack.com)  
+> 🐛 问题反馈：[GitHub Issues](https://github.com/guangzhengli/oneinstack/issues)

@@ -37,10 +37,10 @@ func GetUfwStatus() (*output.IptablesStatus, error) {
 func GetUfwRules(param *input.IptablesRuleParam) (*services.PaginatedResult[models.IptablesRule], error) {
 	tx := app.DB()
 	if param.Q != "" {
-		tx = tx.Where("remark LIKE ?", "%"+param.Q+"%").Or("source LIKE ?", "%"+param.Q+"%").Or("dest LIKE ?", "%"+param.Q+"%")
+		tx = tx.Where("remark LIKE ?", "%"+param.Q+"%")
 	}
-	if param.Target != "" {
-		tx = tx.Where("target = ?", param.Target)
+	if param.Direction != "" {
+		tx = tx.Where("direction = ?", param.Direction)
 	}
 	return services.Paginate[models.IptablesRule](tx, &models.IptablesRule{}, &input.Page{
 		Page:     param.Page.Page,

@@ -66,12 +66,12 @@ func DeleteCron(c *gin.Context) {
 }
 
 func DisableCron(c *gin.Context) {
-	var param input.AddCronParam
+	var param input.CronIDs
 	if err := c.ShouldBindJSON(&param); err != nil {
 		core.HandleError(c, http.StatusBadRequest, err, nil)
 		return
 	}
-	err := cron.DisableCron(c, param.ID)
+	err := cron.DisableCron(c, param.IDs)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
@@ -80,12 +80,12 @@ func DisableCron(c *gin.Context) {
 }
 
 func EnableCron(c *gin.Context) {
-	var param input.AddCronParam
+	var param input.CronIDs
 	if err := c.ShouldBindJSON(&param); err != nil {
 		core.HandleError(c, http.StatusBadRequest, err, nil)
 		return
 	}
-	err := cron.EnableCron(c, param.ID)
+	err := cron.EnableCron(c, param.IDs)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

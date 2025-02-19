@@ -91,7 +91,8 @@ withDefaults(defineProps<Props>(), {
   width: 100%;
   height: 100vh;
   // background-color: @bg-color;
-  background: url('/static/images/login-bg.png') no-repeat;
+  background: rgb(255, 250 , 243);
+  // background: url('/static/images/login-bg.png') no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -100,7 +101,8 @@ withDefaults(defineProps<Props>(), {
     padding: 32px 42px;
     // width: 657px;
     height: 100%;
-    background: url('/static/images/login-bg.webp') no-repeat;
+    // background: url('/static/images/login-bg.webp') no-repeat;
+    background: rgb(255, 250 , 243);
     background-size: 100% 100%;
     position: relative;
 

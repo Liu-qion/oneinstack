@@ -55,14 +55,15 @@ const dialog = reactive({
   }
 })
 const handleOpenPing =async (value: string) => {
-  if(value == 'ping'){
+  console.log(value,'value')
+  if(value === 'ping'){
     const { data: res_wall} = await Api.openPing('')
-    console.log(res_wall,'respimg')
-    wall_value.value = res_wall? true : false
+    let ping_val = !ping_value.value
+    ping_value.value = !ping_val
   }else{
     const { data: res_ping } = await Api.stopFirewall('')
-    console.log(res_ping,'reswall')
-    ping_value.value = res_ping? true : false
+    let wall_val = !wall_value.value
+    wall_value.value = !wall_val
   }
 }
 let searchValue = ref('')
@@ -113,7 +114,7 @@ const getData = async () => {
       q: searchValue.value
     })
     
-    if (res && res.code === 0) {  // 确保请求成功
+    if (res ) {  // 确保请求成功
       tableData.value = res.data.list || []  // 更新表格数据
       pagination.total = res.data.total || 0  // 更新总数
     } else {
@@ -127,7 +128,6 @@ const getData = async () => {
 }
 const getFirewallInfo = async () => {
   const { data: res } = await Api.getFirewallInfo({})
-
   wall_value.value =res.info.enabled ? res.info.enabled : false
   ping_value.value =res.info.pingBlocked ? res.info.pingBlocked : false
 }

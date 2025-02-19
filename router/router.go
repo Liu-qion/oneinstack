@@ -113,7 +113,7 @@ func SetupRouter() *gin.Engine {
 	}
 
 	sshg := g.Group("/ssh")
-	sys.Use(middleware.AuthMiddleware())
+	sys.Use()
 	{
 		sshg.GET("/open", ssh.OpenSSH)
 	}

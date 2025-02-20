@@ -406,7 +406,13 @@ func UpdateSystemTitle(title string) error {
 	if title == "" {
 		return fmt.Errorf(" Title not provided")
 	}
-	tx := app.DB().Model(&models.System{}).Update("title", title)
+	s := models.System{}
+	tx := app.DB().Model(&s).First(&s)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	s.Title = title
+	tx = app.DB().Updates(s)
 	if tx.Error != nil {
 		return tx.Error
 	}

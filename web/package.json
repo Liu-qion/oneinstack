@@ -24,7 +24,6 @@
     "highlight.js": "^11.11.1",
     "html2canvas": "1.4.1",
     "icons-vue": "^1.0.9",
-    "pinia": "^3.0.1",
     "qrcode.vue": "3.6.0",
     "tools-css": "1.0.3",
     "tools-javascript": "1.2.9",

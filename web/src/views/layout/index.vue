@@ -7,9 +7,7 @@ import { Fold, Expand } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import sconfig from '@/sstore/sconfig'
-import { useCounterStore } from '@/stores/counter';
 
-const counterStore = useCounterStore();
 
 
 interface ItemColor {
@@ -168,7 +166,6 @@ const Beturn =()=>{
 }
 const BindButton = ()=>{
   conf.isCollapse = !conf.isCollapse
-  counterStore.menu_status = conf.isCollapse
 }
 </script>
 

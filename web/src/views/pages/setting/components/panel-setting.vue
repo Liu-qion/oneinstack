@@ -5,8 +5,7 @@ import { Api } from '@/api/Api'
 import { onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { watchEffect } from 'vue'
-import { useCounterStore } from '@/stores/counter';
-const counterStore = useCounterStore();
+
 
 
 interface Props {

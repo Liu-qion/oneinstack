@@ -107,16 +107,16 @@ const handleSet = (row: any) => {
 }
 const getData = async () => {
   try {
-    const { data: res } = await Api.getPlanTaskList({
+    const { data: res } = await Api.getFirewallRule({
       page: pagination.currentPage,
       pageSize: pagination.pageSize,
       direction: filterDirection.value,
       q: searchValue.value
     })
-    
+    console.log(res, 'res')
     if (res ) {  // 确保请求成功
-      tableData.value = res.data.list || []  // 更新表格数据
-      pagination.total = res.data.total || 0  // 更新总数
+      tableData.value = res.data  ? res.data :[] // 更新表格数据
+      pagination.total = res.total || 0  // 更新总数
     } else {
       ElMessage.error(res?.message || '获取数据失败')
     }
@@ -185,7 +185,7 @@ onMounted(() => {
         <div>地区规划：0</div>
         <div>IP规则：0</div>
       </div> -->
-      <el-table :data="tableData" border style="width: 100%">
+      <el-table :data="tableData" border style="width: 100%" empty-text="暂无数据" :row-key="(row) => row.id">
         <el-table-column prop="direction" label="方向" width="100">
           <template #default="scope">
             <div style="display: flex; flex-direction: row; align-items: center; cursor: pointer">

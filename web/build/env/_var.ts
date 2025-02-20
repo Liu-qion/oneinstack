@@ -1,3 +1,5 @@
+
+
 export default {
   title: 'Home',
   static: '/static',

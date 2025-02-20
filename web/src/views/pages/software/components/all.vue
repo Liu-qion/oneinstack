@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive ,ref} from 'vue'
 import { ChildEmits, ChildProps } from '../index.vue'
 import CustomDrawer from '@/components/custom-drawer.vue'
 import CustomForm, { type FormItem, type Props as FormProps } from '@/components/custom-form.vue'
@@ -13,17 +13,17 @@ const emit = defineEmits<ChildEmits>()
 withDefaults(defineProps<ChildProps>(), {
   list: () => []
 })
-
+const formRef = ref<FormInstance | null>(null)
 const drawer = reactive({
   show: false,
   title: '安装',
   onClose: () => {
-    formRef?.clearValidate()
-    formRef?.resetFields()
+    formRef.value?.clearValidate()
+    formRef.value?.resetFields()
     drawer.show = false
   },
   onConfirm: () => {
-    formRef?.validate((valid) => {
+    formRef.value?.validate((valid:any) => {
       if (!valid) return
       handleInstall()
       drawer.show = false
@@ -31,7 +31,7 @@ const drawer = reactive({
   }
 })
 
-let formRef: FormInstance
+// let formRef: FormInstance
 const installForm = reactive<FormProps['data']>({
   value: {
     key: '',
@@ -46,7 +46,19 @@ const handleSelectVersion = (v: string, item: any) => {
 }
 
 const handleClickInstall = (item: any) => {
-  if (!installForm.value.version) return handleSelectVersion(item.versions[0], item)
+  console.log('installForm.value.key', installForm.value.key,installForm.value.key!='',item.versions[0],item)
+  
+  if (installForm.value.version!='') {
+    if(item && item.versions && item.versions.includes(installForm.value.version)) {
+      handleSelectVersion( installForm.value.version, item)
+    }else{
+      handleSelectVersion(item.versions[0], item)
+    }
+  }else{
+    handleSelectVersion(item.versions[0], item)
+  }
+  
+ 
   if (!item.params) return handleInstall()
   const config = JSON.parse(item.params)
   installForm.items = (config as []).map<FormItem>((item: any) => ({
@@ -87,12 +99,12 @@ const handleCheckInstallLog = async (value: string) => {
 </script>
 
 <template>
-  <div>
+  <div >
     <div class="title">应用</div>
     <div class="list">
       <template v-if="list.length">
         <div v-for="item in list" class="item">
-          <div style="padding: 28px 30px">
+          <div style="padding: 28px 26px">
             <div class="sundry">
               <div class="icon">
                 <img :src="item.icon" alt="" />

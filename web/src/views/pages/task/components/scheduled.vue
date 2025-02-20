@@ -1,45 +1,54 @@
-
-
-
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Setting, ArrowDown } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Api } from '@/api/Api'
-import { onMounted } from 'vue'
 import AddTask from './add-task.vue'
-import formatCron from  '@/utils/cronutils';
+import formatCron from '@/utils/cronutils'
 
-const tableRef = ref<InstanceType<typeof import('element-plus')['ElTable']>>();
+const tableRef = ref<InstanceType<typeof import('element-plus')['ElTable']>>()
+
 interface RuleForm {
   name: string
   region: string
   count: string
   desc: string
 }
+
+interface Task {
+  id: number
+  status: number
+  // 其他属性...
+}
+
+const multipleSelection = ref<Task[]>([])
 const pagination = reactive({
   currentPage: 1,
   pageSize: 10,
   total: 0
 })
+
 // 清空表格选中状态的方法
 const clearTableSelection = () => {
   if (tableRef.value) {
-    tableRef.value.clearSelection();
+    tableRef.value.clearSelection()
   }
-};
+}
+
+let searchValue = ref('')
 const tableData = ref([])
+
 const getData = async () => {
-  multipleSelection.value=[]
+  multipleSelection.value = []
   try {
     const { data: res } = await Api.getPlanTaskList({
       page: pagination.currentPage,
       pageSize: pagination.pageSize,
       q: searchValue.value
     })
-    console.log(res,'res')
-    if (res ) {  // 确保请求成功
+    console.log(res, 'res')
+    if (res) {  // 确保请求成功
       tableData.value = res.data || []  // 更新表格数据
       pagination.total = res.total || 0  // 更新总数
     } else {
@@ -51,6 +60,7 @@ const getData = async () => {
     pagination.total = 0
   }
 }
+
 const category = ref(['传统项目', 'swoole异步项目', 'thinkphp异步项目', '异步项目', '一键部署', '批量创建'])
 
 const formInline = reactive({
@@ -61,11 +71,11 @@ const formInline = reactive({
 
 const onSubmit = () => {
   console.log('submit!')
-  pagination.pageSize=10
-  pagination.currentPage=1
-  searchValue.value=''
+  pagination.pageSize = 10
+  pagination.currentPage = 1
+  searchValue.value = ''
   getData()
-  }
+}
 
 const statusClick = () => {
   ElMessageBox.confirm('计划任务暂停后将无法继续运行，您真的要停用这个计划任务吗？', '设置计划任务状态', {
@@ -128,43 +138,35 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   })
 }
 
-interface Task {
-  id: number;
-  status: number;
-  // 其他属性...
-}
 const filterDirection = ref('')
-const searchValue = ref('')
-const formatDate=(dateStr: string) =>{
-      if (!dateStr) return '';
-      const date = new Date(dateStr);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
-    }
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`
+}
+
 const addTaskVisible = ref(false)
 const addTask = () => {
   addTaskVisible.value = true
 }
 const updateDrawerVisible = (value: boolean) => {
-  addTaskVisible.value = value;
-};
+  addTaskVisible.value = value
+}
 const handleTaskAdded = (data: any) => {
-    // 处理接收到的数据
-    console.log('接收到子组件传递的数据:', data);
-    getData()
-};
+  console.log('接收到子组件传递的数据:', data)
+  getData()
+}
 const handleCurrentChange = (val: number) => {
   pagination.currentPage = val
   getData()
 }
 
-// 存储选中的行数据
-const multipleSelection = ref()
 // 处理表格选中项变化的方法
 const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val
@@ -181,11 +183,11 @@ const batchDelete = async () => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
-    const ids = multipleSelection.value.map(item => item.id) 
+    const ids = multipleSelection.value.map((item: Task) => item.id)
     try {
-      await Api.deletePlanTask({ids}) 
+      await Api.deletePlanTask({ ids })
       ElMessage.success('删除成功')
-      getData() 
+      getData()
     } catch (error) {
       ElMessage.error('删除失败')
     }
@@ -206,12 +208,11 @@ const batchDisable = async () => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
-    const ids = validSelection.map(item => item.id) 
+    const ids = validSelection.map(item => item.id)
     try {
-      await Api.disablePlanTask({ids}) 
-      
+      await Api.disablePlanTask({ ids })
       ElMessage.success('禁止成功')
-      getData() 
+      getData()
       clearTableSelection()
     } catch (error) {
       ElMessage.error('禁止失败')
@@ -233,11 +234,11 @@ const batchEnable = async () => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(async () => {
-    const ids = validSelection.map(item => item.id) 
+    const ids = validSelection.map(item => item.id)
     try {
-      await Api.enablePlanTask({ids}) 
+      await Api.enablePlanTask({ ids })
       ElMessage.success('开启成功')
-      getData() 
+      getData()
       clearTableSelection()
     } catch (error) {
       ElMessage.error('开启失败')
@@ -255,9 +256,9 @@ const deleteSingleTask = async (row: any) => {
     type: 'warning'
   }).then(async () => {
     try {
-      await Api.deletePlanTask({ids:[row.id]}) 
+      await Api.deletePlanTask({ ids: [row.id] })
       ElMessage.success('删除成功')
-      getData() 
+      getData()
       clearTableSelection()
     } catch (error) {
       ElMessage.error('删除失败')
@@ -279,9 +280,9 @@ const disableSingleTask = async (row: any) => {
     type: 'warning'
   }).then(async () => {
     try {
-      await Api.disablePlanTask({ids:[row.id]}) 
+      await Api.disablePlanTask({ ids: [row.id] })
       ElMessage.success('禁用成功')
-      getData() 
+      getData()
     } catch (error) {
       ElMessage.error('禁用失败')
     }
@@ -302,9 +303,9 @@ const enableSingleTask = async (row: any) => {
     type: 'warning'
   }).then(async () => {
     try {
-      await Api.enablePlanTask({ids:[row.id]}) 
+      await Api.enablePlanTask({ ids: [row.id] })
       ElMessage.success('开启成功')
-      getData() 
+      getData()
     } catch (error) {
       ElMessage.error('开启失败')
     }
@@ -327,6 +328,8 @@ onMounted(() => {
   getData()
 })
 </script>
+
+
 
 <template>
   <div class="container">
@@ -367,8 +370,10 @@ onMounted(() => {
         @selection-change="handleSelectionChange"
         :select-on-indeterminate="false"
         :row-selectable="selectFilter"
-         :row-key="row => row.id"
+        :row-key="(row: any) => row.id"   
+        empty-text="暂无数据"
       >
+      
         <el-table-column type="selection" width="55" :reserve-selection="true" :selectable="selectFilter" />
         <el-table-column prop="name" label="任务名称" width="180"></el-table-column>
         <el-table-column prop="status" label="状态" width="180">
@@ -429,7 +434,5 @@ onMounted(() => {
     <AddTask v-model="addTaskVisible" :type="true" @taskAdded="handleTaskAdded"  />
   </div>
 </template>
-
-<style scoped lang="less"></style>
 
 <style scoped lang="less"></style>

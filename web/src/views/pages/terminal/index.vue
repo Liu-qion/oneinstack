@@ -1,67 +1,38 @@
 <template>
-  <div id="terminal">
-    <div class="output" ref="outputRef">
-      <pre v-for="(line, index) in outputLines" :key="index">{{ line }}</pre>
-    </div>
-    <div class="input">
-      <span>{{ prompt }}</span>
-      <input
-        type="text"
-        v-model="inputValue"
-        @keyup.enter="executeCommand"
-        ref="inputRef"
-        autofocus
-      />
-    </div>
+  <div class="task-container">
+    <card-tabs :list="conf.list" :activeIndex="conf.activeIndex" :clickActive="conf.clickActive" />
+    <component :is="conf.list[conf.activeIndex].component" />
   </div>
+  
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onBeforeUnmount ,reactive } from 'vue';
+import CardTabs from '@/components/card-tabs.vue'
+import Terminal from '@/views/pages/terminal/components/terminal.vue'
 
-// 输出区域的引用
-const outputRef = ref<HTMLDivElement | null>(null);
-// 输入框的引用
-const inputRef = ref<HTMLInputElement | null>(null);
-// 命令输入值
-const inputValue = ref('');
-// 终端提示符
-const prompt = ref('$ ');
-// 输出的行数组
-const outputLines = ref<string[]>([]);
-
-// 执行命令的函数
-const executeCommand = () => {
-  const command = inputValue.value.trim();
-  if (command) {
-    // 将用户输入的命令添加到输出中
-    outputLines.value.push(`${prompt.value}${command}`);
-
-    // 简单的命令处理示例
-    let output: string;
-    switch (command) {
-      case 'help':
-        output = '支持的命令: help, hello';
-        break;
-      case 'hello':
-        output = 'Hello, World!';
-        break;
-      default:
-        output = `未知命令: ${command}`;
-    }
-
-    // 将命令执行结果添加到输出中
-    outputLines.value.push(output);
-
-    // 清空输入框
-    inputValue.value = '';
-
-    // 滚动到输出区域的底部
-    if (outputRef.value) {
-      outputRef.value.scrollTop = outputRef.value.scrollHeight;
-    }
+const conf = reactive({
+  activeIndex: 0,
+  list: [
+    {
+      name: '终端',
+      index: 0,
+      component: Terminal
+    },
+    // ,{
+    //   name: '主机',
+    //   index: 1
+    // },
+    // {
+    //   name: '快速命令',
+    //   index: 2
+    // }
+  ],
+  clickActive: (item: any) => {
+    conf.activeIndex = item.index
   }
-};
+})
+
 </script>
 
 <style scoped>
@@ -70,7 +41,7 @@ const executeCommand = () => {
   background-color: #000;
   color: #fff;
   padding: 10px;
-  height: 300px;
+  height: 400px;
   overflow-y: auto;
 }
 
@@ -93,5 +64,20 @@ const executeCommand = () => {
   border: none;
   outline: none;
   flex: 1;
+}
+
+.connection {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connection label {
+  margin-right: 10px;
+}
+
+.connection input {
+  margin-right: 10px;
 }
 </style>

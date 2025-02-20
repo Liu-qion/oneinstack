@@ -25,12 +25,17 @@ export default ({ mode, command }) => {
     server: {
       host: '0.0.0.0',
       port: env.port || 5100,
+      headers:{ 'Access-Control-Allow-Origin': '*',},
       proxy: {
         '/api': {
           target: 'http://192.168.31.106:8089/v1',
           secure: false, //请求是否为https
           changeOrigin: true, //是否为跨域
           rewrite: (path) => path.replace(/^\/api/, '')
+        },
+        '/socket.io': {
+          target: 'ws://192.168.31.106:8089',
+          ws: true
         }
       }
     },

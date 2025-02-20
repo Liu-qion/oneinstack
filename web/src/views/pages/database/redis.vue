@@ -67,6 +67,7 @@ const handleTabClick = ({ paneName }: { paneName: string | number | undefined })
           v-model="conf.list.params.id"
           placeholder="请选择一个服务器"
           style="width: 200px"
+          no-data-text='暂无数据'
           @change="conf.server.onChange"
         >
           <el-option v-for="item in conf.server.options" v-bind="item" />

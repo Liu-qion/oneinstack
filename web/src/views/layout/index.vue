@@ -7,6 +7,10 @@ import { Fold, Expand } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import sconfig from '@/sstore/sconfig'
+import { useCounterStore } from '@/stores/counter';
+
+const counterStore = useCounterStore();
+
 
 interface ItemColor {
   light: string[]
@@ -86,24 +90,24 @@ const conf = reactive({
         dark: ['#eab170', '#ffffff']
       }
     },
-    {
-      name: '日志',
-      path: '/log',
-      icon: 'log',
-      activeColor: {
-        light: ['#eab170', '#8B8B8B'],
-        dark: ['#eab170', '#ffffff']
-      }
-    },
-    {
-      name: '终端',
-      path: '/terminal',
-      icon: 'terminal',
-      activeColor: {
-        light: ['#8B8B8B', '#eab170'],
-        dark: ['#ffffff', '#eab170']
-      }
-    },
+    // {
+    //   name: '日志',
+    //   path: '/log',
+    //   icon: 'log',
+    //   activeColor: {
+    //     light: ['#eab170', '#8B8B8B'],
+    //     dark: ['#eab170', '#ffffff']
+    //   }
+    // },
+    // {
+    //   name: '终端',
+    //   path: '/terminal',
+    //   icon: 'terminal',
+    //   activeColor: {
+    //     light: ['#8B8B8B', '#eab170'],
+    //     dark: ['#ffffff', '#eab170']
+    //   }
+    // },
     {
       name: '计划任务',
       path: '/task',
@@ -140,7 +144,13 @@ const conf = reactive({
         dark: ['#ffffff', '#eab170']
       },
       event: async () => {
-        ElMessageBox.confirm('退出面板登录，是否继续？', '退出登录', {
+        Beturn()
+      }
+    }
+  ] as NavItem[]
+})
+const Beturn =()=>{
+  ElMessageBox.confirm('退出面板登录，是否继续？', '退出登录', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -155,10 +165,11 @@ const conf = reactive({
             }
           })
           .catch(() => {})
-      }
-    }
-  ] as NavItem[]
-})
+}
+const BindButton = ()=>{
+  conf.isCollapse = !conf.isCollapse
+  counterStore.menu_status = conf.isCollapse
+}
 </script>
 
 <template>
@@ -171,7 +182,15 @@ const conf = reactive({
       <div class="layout-container__header-right">
         <search-input v-model="conf.searchValue" placeholder="请输入关键词进行搜索" />
         <img class="avatar-img" src="/static/images/avatar.png" alt="" />
-        <img class="arrow-down" src="/static/images/arrow-down.png" alt="" />
+        <el-dropdown placement="bottom">
+          <img class="arrow-down" src="/static/images/arrow-down.png" alt="" />
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item @click="Beturn">退出</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+       
       </div>
     </el-header>
     <el-container class="layout-container__body">
@@ -231,7 +250,7 @@ const conf = reactive({
                 </el-scrollbar>
               </div>
             </div>
-            <el-icon class="icon-collapse" color="#7A7F86" :size="18" @click="conf.isCollapse = !conf.isCollapse">
+            <el-icon class="icon-collapse" color="#7A7F86" :size="18" @click="">
               <Fold v-if="!conf.isCollapse" />
               <Expand v-else />
             </el-icon>

@@ -44,7 +44,7 @@
 
       <el-form-item label="执行周期" required>
         <div v-for="(cycle, index) in ruleForm.cycles" :key="index" class="cycle-row">
-          <el-select v-model="cycle.type" @change="(val) => handleCycleChange(val, index)" placeholder="请选择执行周期" style="width: 100px;">
+          <el-select v-model="cycle.type" @change="(val:string) => handleCycleChange(val, index)" placeholder="请选择执行周期" style="width: 100px;">
             <el-option label="每分钟" value="minute" />
             <el-option label="每小时" value="hour" />
             <el-option label="每天" value="day" />
@@ -209,7 +209,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success', 'taskAdded'])
-
+const codeEditorRef = ref(null);
 const drawer = ref(false)
 const direction = ref<'rtl' | 'ltr' | 'ttb' | 'btt'>('rtl')
 const ruleFormRef = ref<FormInstance>()
@@ -277,8 +277,7 @@ const rules = reactive<FormRules>({
   ]
 })
 
-const handleCycleChange = (type: string | number | boolean | undefined, index: number) => {
-  if (typeof type !== 'string') return
+const handleCycleChange = (type: string , index: number) => {
   const cycle = ruleForm.cycles[index]
 
   switch (type) {
@@ -448,14 +447,13 @@ function generateCronExpression(minutesInput: number, hoursInput: number): strin
     return `${minutes} ${hours} ${days} ${months} ${weeks}`;
 }
 
-const handleScriptInput = (event: InputEvent) => {
+const handleScriptInput = (event: Event) => {
   const target = event.target as HTMLPreElement;
+  console.log(target.innerText)
   if (target) {
     ruleForm.shell_content = target.innerText;
   }
 }
-
-
 </script>
 
 <style scoped lang="less">

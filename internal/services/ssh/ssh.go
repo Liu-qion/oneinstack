@@ -50,6 +50,11 @@ func OpenWebShell(c *gin.Context) {
 
 	// 优化输出处理
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("Read error:", err)
+			}
+		}()
 		buf := make([]byte, 4096)
 		for {
 			n, err := ptmx.Read(buf)
@@ -66,6 +71,11 @@ func OpenWebShell(c *gin.Context) {
 
 	// 优化输入处理
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Println("Read error:", err)
+			}
+		}()
 		for {
 			// 设置30秒读取超时
 			conn.SetReadDeadline(time.Now().Add(10 * time.Minute))

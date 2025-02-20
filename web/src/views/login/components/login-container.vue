@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import System from '@/utils/System'
-import { onMounted ,ref } from 'vue'
+import { onMounted, ref } from 'vue'
+
 const isMobile = ref(window.innerWidth <= 1000)
 
+// 修正 resize 事件逻辑
 window.addEventListener('resize', () => {
-  isMobile.value = window.innerWidth >= 1000
+  isMobile.value = window.innerWidth <= 1000
 })
+
 onMounted(() => {
   const handleSplineScript = () => {
     const splineScript = document.querySelector('script[src*="spline-viewer.js"]')
     const splineViewer = document.querySelector('spline-viewer')
-    
-    if (window.innerWidth <= 1000) {
+
+    if (isMobile.value) {
       if (splineScript) {
         splineScript.remove()
       }
@@ -23,10 +26,16 @@ onMounted(() => {
         const script = document.createElement('script')
         script.type = 'module'
         script.src = 'https://unpkg.com/@splinetool/viewer@1.9.68/build/spline-viewer.js'
+        script.onload = () => {
+          if (splineViewer) {
+            (splineViewer as HTMLElement).style.display = 'block'
+          }
+        }
         document.head.appendChild(script)
-      }
-      if (splineViewer) {
-        (splineViewer as HTMLElement).style.display = 'block'
+      } else {
+        if (splineViewer) {
+          (splineViewer as HTMLElement).style.display = 'block'
+        }
       }
     }
   }
@@ -49,27 +58,12 @@ withDefaults(defineProps<Props>(), {
 })
 </script>
 
-
-
-
-
-
 <template>
   <div v-loading="loading" class="login-container">
-    <div class="login-content-left" v-if="isMobile">
-      <!-- <img class="login-content-left__logo" src="/static/images/login-logo.webp" alt="" />
-      <div class="login-content-left__btn">
-        <button
-          class="login-content-left__btn-login"
-          :class="{ active: currentActive === 'login' }"
-          @click="System.router.push('/login')"
-        >
-          登录
-        </button>
-      </div> -->
+    <div class="login-content-left" v-if="!isMobile">
       <spline-viewer url="/static/scene.splinecode"></spline-viewer>
     </div>
-    
+
     <div class="login-content-right">
       <div class="login-content-right__main">
         <slot
@@ -83,6 +77,8 @@ withDefaults(defineProps<Props>(), {
     </div>
   </div>
 </template>
+
+
 
 <style scoped lang="less">
 @primary-color: #f7911c;

@@ -13,7 +13,6 @@ const app = createApp(App)
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { createTerminal } from 'vue-web-terminal'
-// import 'vue-web-terminal/lib/theme/dark.css'
 app.use(ElementPlus)
 // 全局注册 Terminal 组件
 app.use(createTerminal());

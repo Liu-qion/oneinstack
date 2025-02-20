@@ -113,9 +113,9 @@ func DeleteCron(c *gin.Context, id int) error {
 	return reloadSystemCrontab()
 }
 
-func DisableCron(c *gin.Context, id int) error {
+func DisableCron(c *gin.Context, ids []int) error {
 	// 更新状态为禁用
-	if err := app.DB().Model(&models.Cron{}).Where("id = ?", id).Update("status", 0).Error; err != nil {
+	if err := app.DB().Model(&models.Cron{}).Where("id IN ?", ids).Update("status", 0).Error; err != nil {
 		return err
 	}
 
@@ -123,9 +123,9 @@ func DisableCron(c *gin.Context, id int) error {
 	return reloadSystemCrontab()
 }
 
-func EnableCron(c *gin.Context, id int) error {
+func EnableCron(c *gin.Context, ids []int) error {
 	// 更新状态为启用
-	if err := app.DB().Model(&models.Cron{}).Where("id = ?", id).Update("status", 1).Error; err != nil {
+	if err := app.DB().Model(&models.Cron{}).Where("id IN ?", ids).Update("status", 1).Error; err != nil {
 		return err
 	}
 

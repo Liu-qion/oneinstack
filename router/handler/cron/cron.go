@@ -52,26 +52,28 @@ func UpdateCron(c *gin.Context) {
 }
 
 func DeleteCron(c *gin.Context) {
-	var param input.AddCronParam
+	var param input.CronIDs
 	if err := c.ShouldBindJSON(&param); err != nil {
 		core.HandleError(c, http.StatusBadRequest, err, nil)
 		return
 	}
-	err := cron.DeleteCron(c, param.ID)
-	if err != nil {
-		core.HandleError(c, http.StatusInternalServerError, err, nil)
-		return
+	for _, id := range param.IDs {
+		err := cron.DeleteCron(c, id)
+		if err != nil {
+			core.HandleError(c, http.StatusInternalServerError, err, nil)
+			return
+		}
 	}
 	core.HandleSuccess(c, nil)
 }
 
 func DisableCron(c *gin.Context) {
-	var param input.AddCronParam
+	var param input.CronIDs
 	if err := c.ShouldBindJSON(&param); err != nil {
 		core.HandleError(c, http.StatusBadRequest, err, nil)
 		return
 	}
-	err := cron.DisableCron(c, param.ID)
+	err := cron.DisableCron(c, param.IDs)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return
@@ -80,12 +82,12 @@ func DisableCron(c *gin.Context) {
 }
 
 func EnableCron(c *gin.Context) {
-	var param input.AddCronParam
+	var param input.CronIDs
 	if err := c.ShouldBindJSON(&param); err != nil {
 		core.HandleError(c, http.StatusBadRequest, err, nil)
 		return
 	}
-	err := cron.EnableCron(c, param.ID)
+	err := cron.EnableCron(c, param.IDs)
 	if err != nil {
 		core.HandleError(c, http.StatusInternalServerError, err, nil)
 		return

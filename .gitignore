@@ -35,3 +35,5 @@ node_modules
 dist
 
 version
+
+.DS_Store

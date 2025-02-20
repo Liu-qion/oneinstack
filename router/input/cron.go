@@ -13,3 +13,7 @@ type AddCronParam struct {
 	ShellContent string   `json:"shell_content"`
 	Status       int      `json:"status"`
 }
+
+type CronIDs struct {
+	IDs []int `json:"ids"`
+}

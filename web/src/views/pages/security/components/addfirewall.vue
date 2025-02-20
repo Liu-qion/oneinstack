@@ -60,7 +60,7 @@
         <el-option label="出站" value="out" />
       </el-select>
     </el-form-item>
-    <el-form-item label="状态" prop="state" :required="true">
+    <!-- <el-form-item label="状态" prop="state" :required="true">
       <el-select 
         v-model="ruleForm.state" 
         placeholder="请选择状态"
@@ -69,7 +69,7 @@
         <el-option label="启用" :value="1" />
         <el-option label="禁用" :value="0" v-if="!props.type" />
       </el-select>
-    </el-form-item>
+    </el-form-item> -->
     
     <el-form-item label="备注" prop="remark">
       <el-input v-model="ruleForm.remark" placeholder="可为空" />
@@ -142,12 +142,28 @@ import { log } from 'console'
               callback(new Error('请输入IP地址'))
               return
             }
-            const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?(,(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?)*$/
-            if (!ipPattern.test(ipsdata.value)) {
-              callback(new Error('IP地址格式不正确'))
-              return
+            // 修改后的正则表达式，支持 IP 范围
+          const ipPattern = /^((\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?|(\d{1,3}\.){3}\d{1,3}-(\d{1,3}\.){3}\d{1,3})(,((\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?|(\d{1,3}\.){3}\d{1,3}-(\d{1,3}\.){3}\d{1,3}))*$/;
+          if (!ipPattern.test(ipsdata.value)) {
+            callback(new Error('IP地址格式不正确'));
+            return;
+          }
+          // 进一步验证 IP 范围的合理性
+          const ipSegments = ipsdata.value.split(',');
+          for (const segment of ipSegments) {
+            if (segment.includes('-')) {
+              const [startIp, endIp] = segment.split('-');
+              const startIpParts = startIp.split('.').map(Number);
+              const endIpParts = endIp.split('.').map(Number);
+              for (let i = 0; i < 4; i++) {
+                if (startIpParts[i] > endIpParts[i]) {
+                  callback(new Error('IP范围格式不正确，起始IP不能大于结束IP'));
+                  return;
+                }
+              }
             }
           }
+        }
           callback()
         },
         trigger: 'blur'

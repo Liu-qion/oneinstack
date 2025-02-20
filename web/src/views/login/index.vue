@@ -34,16 +34,28 @@ const conf = reactive({
         final: () => conf.loading = false
       })
       ElMessage.success('登录成功')
+      
       sconfig.login(res)
       setTimeout(() => {
         System.router.push('/')
+         
       }, 500)
+      getSystemInfo()
     })
   },
   handleToAppLogin: () => {
     System.router.push('/login/scan')
   }
 })
+//获取网页标题并修改网页标题
+const getSystemInfo = async () => {
+  try {
+    const { data: res } = await Api.getSystemInfo()
+    document.title = res.title+'' 
+  } catch (error) {
+    ElMessage.error('获取系统信息失败')
+  }
+}
 </script>
 
 <template>

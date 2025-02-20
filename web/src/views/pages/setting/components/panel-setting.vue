@@ -152,7 +152,7 @@ const conf = reactive<Config>({
         text: '保存',
         click: async() => {
           try {
-            const username = conf.settingData.find(item => item.prop === 'title')?.value
+            const username = conf.settingData.find(item => item.prop === 'username')?.value
             const { data } = await Api.updateUpdateuser({ username :username})
             if(data) {
               ElMessage.success('修改成功')
@@ -176,7 +176,8 @@ const conf = reactive<Config>({
         click: async() => {
           try {
             const password = conf.settingData.find(item => item.prop === 'password')?.value
-            const { data } = await Api.updateResetpassword({ password :password})
+            const username = conf.settingData.find(item => item.prop === 'username')?.value
+            const { data } = await Api.updateResetpassword({ password :password,username:username})
             if(data) {
               ElMessage.success('修改成功')
             }

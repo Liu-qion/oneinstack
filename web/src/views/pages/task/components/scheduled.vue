@@ -370,15 +370,10 @@ onMounted(() => {
         @selection-change="handleSelectionChange"
         :select-on-indeterminate="false"
         :row-selectable="selectFilter"
-        :row-key="(row: any) => row.id"  
+        :row-key="(row: any) => row.id"   
+        empty-text="暂无数据"
       >
-      <template #empty>
-          <div style="margin-top: 40px">
-            <span>
-              数据列表为空
-            </span>
-          </div>
-        </template>
+      
         <el-table-column type="selection" width="55" :reserve-selection="true" :selectable="selectFilter" />
         <el-table-column prop="name" label="任务名称" width="180"></el-table-column>
         <el-table-column prop="status" label="状态" width="180">

@@ -62,7 +62,8 @@ func OpenWebShell(c *gin.Context) {
 				closeDone()
 				return
 			}
-			if err := conn.WriteMessage(websocket.BinaryMessage, buf[:n]); err != nil {
+
+			if err := conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
 				closeDone()
 				return
 			}
@@ -105,8 +106,7 @@ func OpenWebShell(c *gin.Context) {
 				}
 
 				// 处理普通文本输入
-				input := append(data, '\r') // 添加回车符
-				if _, err := ptmx.Write(input); err != nil {
+				if _, err := ptmx.Write(data); err != nil {
 					return
 				}
 

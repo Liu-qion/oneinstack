@@ -32,10 +32,6 @@ export default ({ mode, command }) => {
           secure: false, //请求是否为https
           changeOrigin: true, //是否为跨域
           rewrite: (path) => path.replace(/^\/api/, '')
-        },
-        '/socket.io': {
-          target: 'ws://192.168.31.106:8089',
-          ws: true
         }
       }
     },

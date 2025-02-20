@@ -7,7 +7,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import sconfig from '@/sstore/sconfig'
 
 
-const isMobile = ref(window.innerWidth <= 768)
+const isMobile = ref(window.innerWidth <= 768 ? false : true)
 
 window.addEventListener('resize', () => {
   isMobile.value = window.innerWidth >= 768

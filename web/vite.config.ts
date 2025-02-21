@@ -28,7 +28,7 @@ export default ({ mode, command }) => {
       headers:{ 'Access-Control-Allow-Origin': '*',},
       proxy: {
         '/api': {
-          target: 'http://192.168.31.106:8089/v1',
+          target: 'http://192.168.31.106:8089',
           secure: false, //请求是否为https
           changeOrigin: true, //是否为跨域
           rewrite: (path) => path.replace(/^\/api/, '')

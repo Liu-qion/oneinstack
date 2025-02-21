@@ -1,6 +1,7 @@
 export const Api = {
   /** 登录 */
   login: (obj?: any) => {
+    console.log('Api.login', obj)
     return http.post('/login', obj)
   },
   /** 获取系统信息 */

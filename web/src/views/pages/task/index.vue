@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import CardTabs from '@/components/card-tabs.vue'
 import Scheduled from '@/views/pages/task/components/scheduled.vue'
 
 const conf = reactive({
@@ -25,15 +24,10 @@ const conf = reactive({
   }
 })
 </script>
-
 <template>
   <div class="task-container">
     <!-- <card-tabs :list="conf.list" :activeIndex="conf.activeIndex" :clickActive="conf.clickActive" /> -->
     <component :is="conf.list[conf.activeIndex].component" />
   </div>
 </template>
-
-<style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
-</style>
+<style scoped lang="less"></style>

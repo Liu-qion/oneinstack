@@ -2,11 +2,12 @@
   <x-route-event></x-route-event>
   <x-router-view :show="conf.show"></x-router-view>
 </template>
-
 <script setup lang="ts">
 import { nextTick, reactive } from 'vue'
 import { ERouter } from './enum/Enum'
 import sconfig from './sstore/sconfig'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 
 

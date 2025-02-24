@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Setting, ArrowDown, VideoPlay, VideoPause, Warning } from '@element-plus/icons-vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage, ElMessageBox, FormInstance } from 'element-plus'
+import { Refresh, VideoPlay, VideoPause, Warning } from '@element-plus/icons-vue'
 import { Api } from '@/api/Api'
 import AddTask from './add-task.vue'
 import formatCron from '@/utils/cronutils'
@@ -84,13 +83,13 @@ const enabledClick = () => {
     cancelButtonText: '取消',
     type: 'warning'
   })
-   .then(() => {
+    .then(() => {
       ElMessage({
         type: 'success',
         message: '退出成功'
       })
     })
-   .catch(() => {
+    .catch(() => {
       ElMessage({
         type: 'info',
         message: '取消退出'
@@ -136,16 +135,16 @@ const addTask = () => {
   action_type.value = true
   addTaskVisible.value = true
   rulesForm.value = {
-  name: '',
-  cron_type: '',
-  schedule: '',
-  created_at: '',
-  deleted_at: '',
-  id: '',
-  command: '',
-  enabled: true,
-  updated_at: ''
-}
+    name: '',
+    cron_type: '',
+    schedule: '',
+    created_at: '',
+    deleted_at: '',
+    id: '',
+    command: '',
+    enabled: true,
+    updated_at: ''
+  }
 }
 
 const handleTaskAdded = (data: any) => {
@@ -332,9 +331,9 @@ const updateSingleTaskLog = async (row: any) => {
   //     id: row.id
   //   }
   // })
-  let {data: res} = await Api.getPlanTaskLog({id: row.id})
+  let { data: res } = await Api.getPlanTaskLog({ id: row.id })
   console.log(res, 'res')
-  
+
 }
 // 选择过滤函数，控制选择逻辑
 const selectFilter = (row: any) => {
@@ -374,22 +373,19 @@ onMounted(() => {
   getData()
 })
 </script>
-
-
-
 <template>
   <div class="container">
-    <el-card >
+    <el-card>
       <div class="" style="display: flex;">
-      <el-space class="btn-group" >
-        <el-button type="primary" @click="addTask">添加任务</el-button>
-        <!-- <el-button type="primary">执行任务</el-button> -->
-        <el-button type="primary" @click="batchEnable">启动任务</el-button>
-        <el-button type="primary"  @click="batchDisable">停止任务</el-button>
-        <el-button type="primary" @click="batchDelete">删除任务</el-button>
-      </el-space>
-      <div class="demo-form-inline flex" style="margin-left: auto;">
-        <!-- <el-dropdown>
+        <el-space class="btn-group">
+          <el-button type="primary" @click="addTask">添加任务</el-button>
+          <!-- <el-button type="primary">执行任务</el-button> -->
+          <el-button type="primary" @click="batchEnable">启动任务</el-button>
+          <el-button type="primary" @click="batchDisable">停止任务</el-button>
+          <el-button type="primary" @click="batchDelete">删除任务</el-button>
+        </el-space>
+        <div class="demo-form-inline flex" style="margin-left: auto;">
+          <!-- <el-dropdown>
           <el-button type="primary" class="mr-2">
             <span class="el-dropdown-link">
               全部分类
@@ -401,44 +397,32 @@ onMounted(() => {
               <el-dropdown-item>分类</el-dropdown-item>
             </el-dropdown-menu>
           </template>
-        </el-dropdown> -->
-        <search-input placeholder="请输入域名或备注" style="margin-right: 18px" v-model="searchValue" @search="getData() "/>
-        <el-button :icon="Refresh" type="primary" @click="onSubmit" style="margin-left: auto;"/>
-        <!-- <el-button :icon="Setting" type="primary" @click="onSubmit" /> -->
+</el-dropdown> --> <search-input placeholder="请输入域名或备注" style="margin-right: 18px" v-model="searchValue"
+            @search="getData()" />
+          <el-button :icon="Refresh" type="primary" @click="onSubmit" style="margin-left: auto;" />
+          <!-- <el-button :icon="Setting" type="primary" @click="onSubmit" /> -->
+        </div>
       </div>
-    </div>
-  </el-card>
-    
+    </el-card>
     <div class="box2">
-      <el-table
-        ref="tableRef"
-        class="fileTable"
-        :data="tableData"
-        border
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        :select-on-indeterminate="false"
-        :row-selectable="selectFilter"
-        :row-key="(row: any) => row.id"   
-        empty-text="暂无数据"
-      >
+      <el-table ref="tableRef" class="fileTable" :data="tableData" border style="width: 100%"
+        @selection-change="handleSelectionChange" :select-on-indeterminate="false" :row-selectable="selectFilter"
+        :row-key="(row: any) => row.id" empty-text="暂无数据">
         <el-table-column type="selection" width="55" :reserve-selection="true" :selectable="selectFilter" />
         <el-table-column prop="name" label="任务名称" width="180"></el-table-column>
         <el-table-column prop="enabled" label="状态" width="180">
           <template #default="scope">
             <div style="display: flex; flex-direction: row; align-items: center; cursor: pointer">
-              <a
-                style="color: #64ffc9; text-decoration: underline ;display: flex;" class="abox"
-                v-if="scope.row.enabled"
-                @click="disableSingleTask(scope.row)"
-              >
-                运行中
-                <el-icon><VideoPlay /></el-icon>
+              <a style="color: #64ffc9; text-decoration: underline ;display: flex;" class="abox"
+                v-if="scope.row.enabled" @click="disableSingleTask(scope.row)"> 运行中 <el-icon>
+                  <VideoPlay />
+                </el-icon>
               </a>
-              <a style="color: #FF4848; text-decoration: underline; " class="abox" v-else-if="!scope.row.enabled "  @click="enableSingleTask(scope.row)">
-                <el-icon><VideoPause /></el-icon>
-                已停用
-              </a>
+              <a style="color: #FF4848; text-decoration: underline; " class="abox" v-else-if="!scope.row.enabled"
+                @click="enableSingleTask(scope.row)">
+                <el-icon>
+                  <VideoPause />
+                </el-icon> 已停用 </a>
               <!-- <a style="color: #ff8888; text-decoration: underline"  class="abox" v-else>
                 <el-icon><Warning /></el-icon>
                 运行异常
@@ -463,17 +447,11 @@ onMounted(() => {
         <el-table-column prop="address" label="操作">
           <template #default="scope">
             <el-button link type="primary" size="small" @click="enableSingleTask(scope.row)" v-if="!scope.row.enabled">
-              开启
-            </el-button>
-            <el-button link type="primary" size="small" @click="disableSingleTask(scope.row)" v-if="scope.row.enabled ">
-              禁用
-            </el-button>
-            <el-button link type="primary" size="small" @click="deleteSingleTask(scope.row)">
-              删除
-            </el-button>
-            <el-button link type="primary" size="small" @click="updateSingleTask(scope.row)">
-              更新
-            </el-button>
+              开启 </el-button>
+            <el-button link type="primary" size="small" @click="disableSingleTask(scope.row)" v-if="scope.row.enabled">
+              禁用 </el-button>
+            <el-button link type="primary" size="small" @click="deleteSingleTask(scope.row)"> 删除 </el-button>
+            <el-button link type="primary" size="small" @click="updateSingleTask(scope.row)"> 更新 </el-button>
             <!-- <el-button link type="primary" size="small" @click="updateSingleTaskLog(scope.row)">
               查看日志
             </el-button> -->
@@ -492,7 +470,8 @@ onMounted(() => {
                 <span>条/页</span>
                 <el-button @click="prevPage" :disabled="pagination.currentPage === 1">上一页</el-button>
                 <span>{{ pagination.currentPage }} / {{ Math.ceil(pagination.total / pagination.pageSize) }}</span>
-                <el-button @click="nextPage" :disabled="pagination.currentPage === Math.ceil(pagination.total / pagination.pageSize)">下一页</el-button>
+                <el-button @click="nextPage"
+                  :disabled="pagination.currentPage === Math.ceil(pagination.total / pagination.pageSize)">下一页</el-button>
                 <span>共 {{ pagination.total }} 条记录</span>
               </div>
             </td>
@@ -500,14 +479,18 @@ onMounted(() => {
         </template>
       </el-table>
     </div>
-    <AddTask v-model="addTaskVisible" :type="action_type" @taskAdded="handleTaskAdded" :formData="rulesForm"  />
+    <AddTask v-model="addTaskVisible" :type="action_type" @taskAdded="handleTaskAdded" :formData="rulesForm" />
   </div>
 </template>
-
 <style scoped lang="less">
-.abox{
-  display: flex; 
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+@import '@/styles/element.less';
+@import '@/styles/common.less';
+
+.abox {
+  display: flex;
+  align-items: center;
+  /* 垂直居中 */
+  justify-content: center;
+  /* 水平居中 */
 }
 </style>

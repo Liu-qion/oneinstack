@@ -81,7 +81,6 @@ export default {
 	mysqladdtexttwo:'添加定时备份任务，以确保您的数据安全。温馨提示：通过第三方或者MySQL命令行创建的数据库需要点击"从服务器获取"才能在计划任务中备份',//添加定时备份任务，以确保您的数据安全。温馨提示：通过第三方或者MySQL命令行创建的数据库需要点击"从服务器获取"才能在计划任务中备份
 	plannedtext:'计划任务',//计划任务
 	remotedatebase:'远程数据库',//远程数据库
-	
 	mysqldatanull:'您的数据库列表为空，您可以',//您的数据库列表为空，您可以
 	addonedatebase:'添加一个数据库',//添加一个数据库
 	remoteservernull:'您的远程服务器列表为空，您可以',//您的远程服务器列表为空，您可以
@@ -97,6 +96,9 @@ export default {
 	placeport:'请输入端口',//请输入端口
 	edit:'编辑',//编辑
 	synchronization:'同步',//同步
+	maxfilenum:'最多只能打开10个文件夹',//最多只能打开10个文件夹
+	exitauthority:'编辑权限',//编辑权限
+	
 	
 	// addsucceed:'添加成功',//添加成
 	

@@ -6,6 +6,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { Api } from '@/api/Api'
 import AddTask from './add-task.vue'
 import formatCron from '@/utils/cronutils'
+import System from '@/utils/System'
 
 const tableRef = ref<InstanceType<typeof import('element-plus')['ElTable']>>()
 
@@ -322,6 +323,19 @@ const updateSingleTask = async (row: any) => {
   // 这里可以传递 row 数据到子组件进行编辑
   // 例如：addTaskVisible.value = { ...row }
 }
+// 查看单条数据日志方法
+const updateSingleTaskLog = async (row: any) => {
+  System.router.push('/task/log')
+  // router.push({
+  //   name: 'taskLog',
+  //   query: {
+  //     id: row.id
+  //   }
+  // })
+  let {data: res} = await Api.getPlanTaskLog({id: row.id})
+  console.log(res, 'res')
+  
+}
 // 选择过滤函数，控制选择逻辑
 const selectFilter = (row: any) => {
   return true
@@ -460,6 +474,9 @@ onMounted(() => {
             <el-button link type="primary" size="small" @click="updateSingleTask(scope.row)">
               更新
             </el-button>
+            <!-- <el-button link type="primary" size="small" @click="updateSingleTaskLog(scope.row)">
+              查看日志
+            </el-button> -->
           </template>
         </el-table-column>
         <!-- 自定义表格底部栏用于分页 -->

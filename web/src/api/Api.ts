@@ -158,7 +158,11 @@ export const Api = {
   },
   /** 更新计划任务 */
   updataPlanTask: (obj: any) => {
-    return http.post('/cron/del', obj)
+    return http.post('/cron/update', obj)
+  },
+   /** 查看计划任务详情/日志 */
+   getPlanTaskLog: (obj: any) => {
+    return http.post('/cron/log', obj)
   },
   /** 获取系统信息/面板设置 */
   getSystemInfo: () => {

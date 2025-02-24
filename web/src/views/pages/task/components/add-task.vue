@@ -346,16 +346,24 @@ const handleSubmit = async () => {
 
         // 打印生成的 cron 表达式数组
         console.log('Cron expressions:', cronExpressions)
-        let apidata = {
-          name: ruleForm.name,
-          // cron_type: ruleForm.cron_type,
-          schedule: cronExpressions,
-          command: ruleForm.command,
-          enabled: true,
-          id:''
-        }
-        if (!props.type) {
-          apidata.id = props.formData.id ? props.formData.id : '' 
+        let apidata: {
+            name: string;
+            schedule: string[];
+            command: string;
+            enabled: boolean;
+            [key: string]: any; // 索引签名，允许添加任意属性
+        } = {
+            name: ruleForm.name,
+            schedule: cronExpressions,
+            command: ruleForm.command,
+            enabled: true
+        };
+        if (!props.type && props.formData && props.formData.id) {
+          apidata.id = props.formData.id 
+          // (apidata as { id: number | string }).id = props.formData.id;
+        }else{
+          // delete (apidata as { id: number | string }).id;
+          delete apidata.id
         }
         const { data } = await Api[props.type ? 'addPlanTask' :'updataPlanTask'](apidata)
         emit('taskAdded', data) 

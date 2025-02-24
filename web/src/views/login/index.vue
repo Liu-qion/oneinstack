@@ -5,7 +5,7 @@ import System from '@/utils/System'
 import { Api } from '@/api/Api'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import sconfig from '@/sstore/sconfig'
-import i18n from '@/lang/index.ts'
+// import i18n from '@/lang/index.ts'
 
 const isMobile = ref(window.innerWidth <= 768 ? false : true)
 

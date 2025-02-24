@@ -351,10 +351,11 @@ const handleSubmit = async () => {
           // cron_type: ruleForm.cron_type,
           schedule: cronExpressions,
           command: ruleForm.command,
-          enabled: true
+          enabled: true,
+          id:''
         }
         if (!props.type) {
-          apidata.id = props.formData.id
+          apidata.id = props.formData.id ? props.formData.id : '' 
         }
         const { data } = await Api[props.type ? 'addPlanTask' :'updataPlanTask'](apidata)
         emit('taskAdded', data) 
@@ -377,8 +378,8 @@ watch(() => props.modelValue, (val) => {
 watch(() => props.formData, (val) => {
     if (val && !props.type) {
         const cronTimes = val.schedule.split(',');
-        ruleForm.cron_type = val.cron_type;
-    ruleForm.name = val.name;
+        // ruleForm.cron_type = val.cron_type;
+        ruleForm.name = val.name;
         ruleForm.cycles = [];
         ruleForm.command = val.command;
         ruleForm.name = val.name;

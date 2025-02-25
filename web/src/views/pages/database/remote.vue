@@ -199,8 +199,7 @@ conf.list.getData()
 </template>
 
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+
 
 .drawerHeader {
   padding: 20px 0;

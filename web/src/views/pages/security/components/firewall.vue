@@ -196,8 +196,10 @@ onMounted(() => {
         <el-table-column prop="direction" label="方向" width="100">
           <template #default="scope">
             <div style="display: flex; flex-direction: row; align-items: center; cursor: pointer">
-              <el-tag type="primary"  v-if="scope.row.direction == 'in'">输入</el-tag>
-              <el-tag type="warning"  v-if="scope.row.direction == 'out'">输出</el-tag>
+              <span v-if="scope.row.direction == 'in'"> 入站</span>
+              <span v-if="scope.row.direction == 'out'">出站</span>
+              <!-- <el-tag type="primary"  v-if="scope.row.direction == 'in'">输入</el-tag>
+              <el-tag type="warning"  v-if="scope.row.direction == 'out'">输出</el-tag> -->
             </div>
           </template>
         </el-table-column>
@@ -205,8 +207,10 @@ onMounted(() => {
         <el-table-column prop="state" label="状态" width="120">
           <template #default="scope">
             <div style="display: flex; flex-direction: row; align-items: center; cursor: pointer">
-              <a style="color: #64ffc9; text-decoration: underline" v-if="scope.row.state === 1">运行中</a>
-              <a style="color: #ff8888; text-decoration: underline" v-if="scope.row.state === 0">已停用</a>
+               <span v-if="scope.row.state === 1"> 运行中</span>
+              <span v-if="scope.row.state === 0">已停用</span>
+              <!-- <a style="color: #64ffc9; text-decoration: underline" >运行中</a>
+              <a style="color: #ff8888; text-decoration: underline" >已停用</a> -->
             </div>
           </template>
         </el-table-column>

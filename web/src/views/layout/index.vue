@@ -264,6 +264,8 @@ const BindButton = ()=>{
 </template>
 
 <style scoped lang="less">
+	@import '@/styles/element.less';
+	@import '@/styles/common.less';
 .layout-container {
   background: rgb(var(--bg-color));
   height: 100vh;

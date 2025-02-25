@@ -59,6 +59,7 @@ const conf = reactive({
       border
       style="width: 100%"
       @selection-change="selectionChange"
+	  empty-text="暂无数据"
     >
       <template #empty>
         <slot v-if="$slots.empty" name="empty" />

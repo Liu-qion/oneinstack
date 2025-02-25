@@ -52,6 +52,5 @@ const conf = reactive({
 </template>
 
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+
 </style>

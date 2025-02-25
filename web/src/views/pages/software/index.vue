@@ -165,8 +165,7 @@ conf.list.getData()
 </template>
 
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+
 
 .category {
   height: 60px;

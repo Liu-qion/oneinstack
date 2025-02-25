@@ -98,10 +98,52 @@ export default {
 	synchronization:'同步',//同步
 	maxfilenum:'最多只能打开10个文件夹',//最多只能打开10个文件夹
 	exitauthority:'编辑权限',//编辑权限
-	
-	
+	modifyuser:'修改用户和用户组',//修改用户和用户组
+	name:'名称',//名称
+	placeholdername:'请输入名称',//请输入名称
+	owner:'所有者',//所有者
+	usergroup:'用户组',//用户组
+	executable:'可执行',//可执行
+	commonality:'公共',//公共
+	limits:'权限',//权限
+	placeholderlimitis:'请输入权限',//请输入权限
+	limitserror:'权限错误',//权限错误
+	modifysubfile:'同时修改子文件属性',//同时修改子文件属性
+	placeholderusergroup:'请输入用户组',//请输入用户组
+	rootdirectory:'根目录',//根目录
+	filename:'文件名称',//文件名称
+	modifytime:'修改时间',//修改时间
+	size:'大小',//大小
+	downloadsuccess:'下载成功',//下载成功
+	deletefile:'删除文件',//删除文件
+	uploadfile:'上传文件到',//上传文件到
+	startfile:'开始上传',//开始上传
+	urldownload:'URL链接下载',//URL链接下载
+	nouploadrootdirectory:'不能直接上传文件到系统根目录',//不能直接上传文件到系统根目录
+	searchfile:'搜索文件/目录',//搜索文件/目录
+	uploadordownload:'上传/下载',// 上传/下载
+	uploadfileorfolders:'上传文件/文件夹',//上传文件/文件夹
+	add:'新建',//新建
+	folders:'文件夹',//文件夹
+	open:'打开',//打开
+	upload:'下载',//下载
+	delete:'删除',//删除
+	suredelete:'确定删除所选文件',//确定删除所选文件
+	clearlist:'清空列表',//清空列表
+	dragfile:'请将需要上传的文件/文件夹拖到此处',//请将需要上传的文件/文件夹拖到此处
+	placeholderfile:'请输入文件名',//请输入文件名
+	placehoderurl:'请输入url地址',//	请输入url地址
+	affixorplaceholderurl:'在此处粘贴或输入url地址',
+	selectdownloadpath:'请选择下载路径',//请选择下载路径
+	downloadto:'下载到',//下载到
+	placeholdersavefilename:'请输入保存文件名',//请输入保存文件名
+	selectfloder:'选择文件夹',//选择文件夹
+	homewebsite:'网站-全部',//网站-全部
+	homedata:'数据-全部',//数据-全部
+	homesoftware:'安全风险',//安全风险
+	contentnull:'当前内容为空，点击编辑',//当前内容为空，点击编辑
+	internalmemory:'内存',//内存
 	// addsucceed:'添加成功',//添加成
-	
 	
 	
 	

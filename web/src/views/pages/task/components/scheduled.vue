@@ -452,9 +452,9 @@ onMounted(() => {
               禁用 </el-button>
             <el-button link type="primary" size="small" @click="deleteSingleTask(scope.row)"> 删除 </el-button>
             <el-button link type="primary" size="small" @click="updateSingleTask(scope.row)"> 更新 </el-button>
-            <!-- <el-button link type="primary" size="small" @click="updateSingleTaskLog(scope.row)">
+            <el-button link type="primary" size="small" @click="updateSingleTaskLog(scope.row)">
               查看日志
-            </el-button> -->
+            </el-button>
           </template>
         </el-table-column>
         <!-- 自定义表格底部栏用于分页 -->
@@ -483,8 +483,7 @@ onMounted(() => {
   </div>
 </template>
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+
 
 .abox {
   display: flex;

@@ -95,7 +95,7 @@ const conf = reactive({
         const cloneRow = structuredClone(toRaw(row))
         const domain = cloneRow.domain?.split(',')
         conf.form.data.value = cloneRow
-        conf.form.data.value.hostDomain = domain[0]
+        conf.form.data.value.hostDomain = domain[0].trim()
         domain.shift()
         conf.form.data.value.otherDomain = domain.join('\n')
       }
@@ -104,9 +104,16 @@ const conf = reactive({
     onConfirm: () => {
       conf.form.instance?.validate(async (valid) => {
         if (!valid) return
-        const otherDomain = conf.form.data.value.otherDomain?.split('\n')
-        conf.form.data.value.domain = otherDomain
-          ? `${conf.form.data.value.hostDomain},${otherDomain}`
+      		let otherDomain =''
+      		if(conf.form.data.value.otherDomain){
+      			otherDomain = conf.form.data.value.otherDomain?.split('\n')
+      		}else{
+      			otherDomain=''
+      		}
+      		
+        
+        conf.form.data.value.domain = otherDomain!=''
+          ? `${conf.form.data.value.hostDomain.trim()},${otherDomain}`
           : conf.form.data.value.hostDomain
         console.log(conf.form.data.value)
         conf.drawer.loading = true
@@ -244,8 +251,9 @@ conf.website.getData()
       :click-active="conf.tabs.clickActive"
     />
     <div class="tool-bar">
-      <el-space class="btn-group" :size="14">
-        <el-button type="primary" @click="conf.website.handleAdd">添加站点</el-button>
+      <el-space class="btn-group" :size="14" style="width: 100%;" >
+        <el-button type="primary" @click="conf.website.handleAdd" >添加站点</el-button>
+		
         <!-- <el-dropdown>
             <el-button type="primary">
               <span class="el-dropdown-link">
@@ -291,16 +299,19 @@ conf.website.getData()
               </el-dropdown-menu>
             </template>
           </el-dropdown> -->
+		
       </el-space>
       <div class="demo-form-inline">
-        <search-input
-          v-model="conf.website.params.name"
-          placeholder="请输入域名"
-          style="margin-right: 18px"
-          @search="conf.website.getData()"
-        />
-        <el-button :icon="Refresh" type="primary" @click="conf.website.getData()" />
-        <el-button :icon="Setting" type="primary" />
+       <el-space class="btn-group" :size="14" >
+       	<search-input
+       	  v-model="conf.website.params.name"
+       	  placeholder="请输入域名"
+       	  style="margin-right: 18px"
+       	  @search="conf.website.getData()"
+       	/>
+       	<el-button :icon="Refresh" type="primary" @click="conf.website.getData()" />
+       	<!-- <el-button :icon="Setting" type="primary" /> -->
+       </el-space>
       </div>
     </div>
     <div class="box2">
@@ -313,6 +324,7 @@ conf.website.getData()
         :total="conf.website.total"
         :page-size="conf.website.params.pageSize"
         @update:page="conf.website.getData"
+		
       >
         <template #action="{ row }">
           <el-button type="primary" link @click="conf.drawer.open('edit', row)">设置</el-button>
@@ -355,6 +367,6 @@ conf.website.getData()
 </template>
 
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+	
+
 </style>

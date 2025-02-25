@@ -225,8 +225,7 @@ conf.list.params.type = routeName
 </template>
 
 <style scoped lang="less">
-@import '@/styles/element.less';
-@import '@/styles/common.less';
+
 
 .database-container {
   .tip {

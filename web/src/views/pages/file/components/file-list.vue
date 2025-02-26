@@ -20,13 +20,13 @@ const emit = defineEmits<Emits>()
 const conf = reactive({
   path: ['/'],
   columns: [
-    { prop: 'name', label: '文件名称', width: '200', sortable: true },
+    { prop: 'name', label: '文件名称', sortable: true },
     { prop: 'permissions', label: '权限', width: '180' },
-    { prop: 'user', label: '用户' },
-    { prop: 'group', label: '用户组' },
-    { prop: 'size', label: '大小', sortable: true },
+    { prop: 'user', label: '用户',width: '180' },
+    { prop: 'group', label: '用户组',width: '180' },
+    { prop: 'size', label: '大小',width: '180', sortable: true },
     { prop: 'modTime', label: '修改时间', sortable: true },
-    { prop: 'action', label: '操作' }
+    { prop: 'action', label: '操作',width:'270' }
   ],
   fileList: [],
   loading: false,

@@ -60,4 +60,9 @@ const loadNode = async (node: Node, resolve: (data: Tree[]) => void) => {
   </el-tree>
 </template>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+:deep(.flex .items-center){
+  display: flex;
+  justify-content: center;
+}
+</style>

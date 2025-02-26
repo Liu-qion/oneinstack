@@ -50,6 +50,14 @@ const conf = reactive({
   },
   contentRefs: [] as { [index: number]: HTMLElement }
 })
+
+const collectionHeaderCellClassName = (row:any) => {
+  if(row.columnIndex != row.row.length -1){
+    return {'border-right':'1px solid #8B8B8B30','text-align':'center'};
+  }else{
+    return {'text-align':'center'};
+  }
+}
 </script>
 
 <template>
@@ -57,14 +65,16 @@ const conf = reactive({
     <el-table
       :data="autoPagination ? conf.visibleData : data"
       border
-      style="width: 100%"
+      style="width: 100%;text-align: center;"
       @selection-change="selectionChange"
-	  empty-text="暂无数据"
+	    empty-text="暂无数据"
+      :cell-style="{'text-align':'center'}"
+      :header-cell-style="{'border-right':'1px solid #8B8B8B30','text-align':'center'}"
     >
       <template #empty>
         <slot v-if="$slots.empty" name="empty" />
       </template>
-      <el-table-column v-if="selection" type="selection" width="55" />
+      <el-table-column v-if="selection" type="selection" width="55"/>
       <el-table-column
         v-for="(item, col) in columns"
         :key="item.prop"

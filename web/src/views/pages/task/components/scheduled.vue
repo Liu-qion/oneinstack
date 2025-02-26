@@ -369,13 +369,22 @@ const handlePageSizeChange = (newSize: number) => {
   getData()
 }
 
+const collectionHeaderCellClassName = (row: any) => {
+  if(row.columnIndex != row.row.length -1){
+    return {'border-right':'1px solid #8B8B8B30','height':'40px','text-align':'center'};
+  }else{
+    return {'height':'40px','text-align':'center'};
+  }
+}
+
 onMounted(() => {
   getData()
 })
 </script>
 <template>
   <div class="container">
-    <el-card>
+    <div class="card-box">
+      <el-card>
       <div class="" style="display: flex;">
         <el-space class="btn-group">
           <el-button type="primary" @click="addTask">添加任务</el-button>
@@ -404,8 +413,9 @@ onMounted(() => {
         </div>
       </div>
     </el-card>
+    </div>
     <div class="box2">
-      <el-table ref="tableRef" class="fileTable" :data="tableData" border style="width: 100%"
+      <el-table ref="tableRef" :header-cell-style="{'border-right':'1px solid #8B8B8B30','text-align':'center'}" class="fileTable" :data="tableData" border style="width: 100%"
         @selection-change="handleSelectionChange" :select-on-indeterminate="false" :row-selectable="selectFilter"
         :row-key="(row: any) => row.id" empty-text="暂无数据">
         <el-table-column type="selection" width="55" :reserve-selection="true" :selectable="selectFilter" />

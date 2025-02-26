@@ -173,11 +173,11 @@ const BindButton = ()=>{
   <el-container class="layout-container">
     <el-header class="layout-container__header">
       <div class="layout-container__header-left">
-        <img class="logo" src="/static/images/logo.png" alt="" />
+        <img class="logo" src="/static/images/logo.jpeg" alt="" />
         <img class="logo-text" :src="`/static/images/logo-text-${sapp.theme}.png`" alt="" />
       </div>
       <div class="layout-container__header-right">
-        <search-input v-model="conf.searchValue" placeholder="请输入关键词进行搜索" />
+        <!-- <search-input v-model="conf.searchValue" placeholder="请输入关键词进行搜索" /> -->
         <img class="avatar-img" src="/static/images/avatar.png" alt="" />
         <el-dropdown placement="bottom">
 			<img class="arrow-down" src="/static/images/arrow-down.png" alt="" />
@@ -248,7 +248,7 @@ const BindButton = ()=>{
                 </el-scrollbar>
               </div>
             </div>
-            <el-icon class="icon-collapse" color="#7A7F86" :size="18" @click="">
+            <el-icon class="icon-collapse" color="#7A7F86" :size="18" @click="BindButton">
               <Fold v-if="!conf.isCollapse" />
               <Expand v-else />
             </el-icon>
